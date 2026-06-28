@@ -20,3 +20,6 @@ def get_frame(cap):
     return None 
   return frame 
 
+# get release camera
+def release_camera(cap):
+  cap.release()
