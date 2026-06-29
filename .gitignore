@@ -6,3 +6,4 @@ __pycache__/
 .env
 database/campus.db
 data/unknown_faces/
+data/stakeholders/
