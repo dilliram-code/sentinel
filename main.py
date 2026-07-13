@@ -8,7 +8,7 @@ import cv2
 
 def main():
 
-    cap = initialize_camera(
+    cap = initialize_camera(  
         WEBCAM_ID
     )
 
