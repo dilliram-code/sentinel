@@ -27,199 +27,217 @@ The system detects people from live CCTV feeds, recognizes registered stakeholde
 
 ---
 
-## Project Architecture
+# Instructions to run the project:
 
-```text
-CampusAIStakeholderDetection/
+-  1. check registration(preview, without touching anything): `python registration/bulk_register.py --sheet stakeholders.xlsx --photos-dir stakeholder --dry-run`
 
-├── config/
-├── dashboard/
-├── database/
-├── data/
-│   ├── stakeholders/
-│   └── unknown_faces/
-├── models/
-├── services/
-├── utils/
-├── tests/
-├── reports/
-├── main.py
+-  2. register for real: `python registration/bulk_register.py --sheet stakeholders.xlsx --photos-dir stakeholder`
+
+-  3. start survellience: `python main.py run --location "MBUST Lab"`
+
+-  4. start the dashboard: `streamlit run dashboard/app.py`
+
+
+## 📁 Project structure
+
+```
+campus_surveillance/
+├── main.py                        # CLI: init-db | check | register | run | list
 ├── requirements.txt
-└── README.md
+├── config/settings.py             # every path & threshold in one place
+├── camera/webcam_stream.py        # laptop webcam (auto-detects index 0/1/2)
+├── detection/person_detector.py   # YOLOv8 person detection
+├── recognition/face_recognizer.py # InsightFace embeddings + cosine matching
+├── database/db_manager.py         # SQLite: stakeholders, visit_logs, unknown_persons
+├── pipeline/surveillance_pipeline.py  # real-time loop
+├── registration/register_stakeholder.py  # enroll via webcam or photos
+├── dashboard/app.py               # Streamlit dashboard
+├── utils/                         # logger + image helpers
+├── models/                        # (optional) fine-tuned YOLO weights
+└── data/                          # created automatically at runtime
+    ├── campus_surveillance.db
+    ├── stakeholders/
+    ├── unknown_faces/
+    └── live/
+```
+
+## ❓ What goes in each data folder? (short answer: nothing — leave them empty)
+
+| Folder | Who fills it | What ends up inside |
+|---|---|---|
+| `data/stakeholders/` | **The program**, during registration | One reference photo per registered person, named by UID (e.g. `S001.jpg`). Shown in the dashboard. **Don't put files here manually.** |
+| `data/unknown_faces/` | **The program**, during surveillance | Auto-cropped face images of unrecognized people, timestamped (e.g. `unknown_20260704_101502_123456.jpg`). Review them in the dashboard's *Unknown Persons* tab. |
+| `data/live/` | **The program**, during surveillance | A single `latest.jpg` — the most recent annotated frame — which the dashboard's *Live Monitor* tab displays. Overwritten continuously. |
+| `data/campus_surveillance.db` | **The program** | The SQLite database (stakeholders, visit logs, unknown records). |
+
+The only folder **you** create is an optional `photos/` folder (anywhere you
+like) if you prefer registering people from photo files instead of the
+webcam — e.g. `photos/sita/1.jpg, 2.jpg, 3.jpg` (3–5 clear, front-facing
+photos per person give the best accuracy).
+
+---
+
+## 🚀 Complete workflow — follow these steps in order
+
+### Step 0 — Prerequisites (one time)
+* Python **3.9 – 3.11** installed (`python --version`)
+* Internet connection for the **first run only** (models auto-download:
+  `yolov8n.pt` ≈ 6 MB and InsightFace `buffalo_l` ≈ 280 MB)
+* Webcam not in use by Zoom/Teams/browser, and OS camera permission granted
+  to your terminal (Windows: Settings → Privacy → Camera; macOS: System
+  Settings → Privacy & Security → Camera)
+
+### Step 1 — Install (one time)
+```bash
+cd sentinel
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# macOS / Linux:
+source .venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+### Step 2 — Initialize the database (one time)
+```bash
+python main.py init-db
+```
+Creates `data/` and all its subfolders + the SQLite database.
+
+### Step 3 — Self-check (one time, strongly recommended)
+```bash
+python main.py check
+```
+Verifies every library, downloads/loads both models, initializes the DB and
+tests your webcam. Fix any `[FAIL]` line before continuing — if this prints
+**ALL CHECKS PASSED**, the pipeline will run without setup errors.
+
+### Step 4 — Register stakeholders (once per person)
+Easiest — straight from the webcam (captures 5 face samples automatically;
+look at the camera, turn your head slightly between captures):
+```bash
+python main.py register --uid S001 --name "Sita Sharma" --role Student --webcam
+```
+Or from photo files (file, folder, or glob; multiple photos are averaged
+into one robust template):
+```bash
+python main.py register --uid F010 --name "Dr. Ram K." --role Faculty --images ./photos/ram/
+```
+Roles: `Student`, `Faculty`, `Staff`, `Authorized`.
+Re-registering the same `--uid` safely **updates** that person.
+
+### Step 5 — Confirm registration
+```bash
+python main.py list
+```
+
+### Step 6 — Run real-time surveillance
+```bash
+python main.py run
+```
+* A preview window opens: **green box** = recognized stakeholder (name, role,
+  similarity), **red box** = UNKNOWN (face auto-saved + DB record).
+* Visits are logged at most once per person per 60 s; the same unknown is
+  not re-saved within 120 s (both tunable in `config/settings.py`).
+* Press **q** in the preview window (or Ctrl-C in the terminal) to stop.
+
+Useful variants:
+```bash
+python main.py run --location "Home Desk"     # label stored with every log
+python main.py run --source 1                 # external USB webcam
+python main.py run --source test.mp4 --max-frames 300   # evaluate on a video
+python main.py run --no-display               # headless (no preview window)
+```
+
+### Step 7 — Open the dashboard (second terminal, same venv)
+```bash
+streamlit run dashboard/app.py
+```
+Tabs: **Live Monitor** (latest annotated frame) • **Visit Logs** (search +
+CSV export) • **Unknown Persons** (photo review queue with *Mark verified*)
+• **Stakeholders** • **Reports** (visits per day / location / role).
+
+### Everyday use after setup
+```bash
+source .venv/bin/activate        # (or .venv\Scripts\activate)
+python main.py run               # terminal 1
+streamlit run dashboard/app.py   # terminal 2
 ```
 
 ---
 
-# 🛠️ Technologies Used
+## 🔧 Tuning (config/settings.py)
 
-| Category             | Technology        |
-| -------------------- | ----------------- |
-| Programming Language | Python            |
-| Person Detection     | YOLOv8            |
-| Face Recognition     | InsightFace       |
-| Face Similarity      | Cosine Similarity |
-| Computer Vision      | OpenCV            |
-| Database             | SQLite            |
-| Dashboard            | Streamlit         |
-| Deep Learning        | PyTorch           |
-| Data Processing      | NumPy, Pandas     |
-| Visualization        | Plotly            |
+| Setting | Default | Effect |
+|---|---|---|
+| `FACE_MATCH_THRESHOLD` | 0.45 | Lower ⇒ easier match (more false accepts); higher ⇒ stricter (more false UNKNOWNs). Try 0.40–0.50. |
+| `VISIT_LOG_COOLDOWN_SEC` | 60 | Gap between repeat visit logs per person |
+| `UNKNOWN_LOG_COOLDOWN_SEC` | 120 | De-dup window for unknown captures |
+| `FRAME_PROCESS_EVERY_N` | 2 | Raise to 3–4 on slow laptops for smoother FPS |
+| `DISPLAY_WINDOW` | True | Set False on headless machines |
 
----
+## 🩹 Troubleshooting
 
-# 🔄 Project Workflow
-
-```text
-                Live CCTV Camera
-                      │
-                      ▼
-             Video Frame Capture
-               (OpenCV VideoCapture)
-                      │
-                      ▼
-         YOLOv8 Person Detection Model
-                      │
-      ┌───────────────┴───────────────┐
-      ▼                               ▼
- No Person                       Person Detected
-                                      │
-                                      ▼
-                            Crop Detected Person
-                                      │
-                                      ▼
-                           Face Detection Module
-                                      │
-                          Face Found?
-                        ┌──────┴───────┐
-                        ▼              ▼
-                      No Face        Face Found
-                        │              │
-                        ▼              ▼
-                  Ignore Frame   InsightFace Model
-                                      │
-                                      ▼
-                          Face Embedding Extraction
-                                      │
-                                      ▼
-                     Compare with Stakeholder Database
-                         (Cosine Similarity Matching)
-                                      │
-                 ┌────────────────────┴────────────────────┐
-                 ▼                                         ▼
-         Stakeholder Recognized                  Unknown Person
-                 │                                         │
-                 ▼                                         ▼
-         Log Visit Record                    Save Face Image
-                 │                                         │
-                 ▼                                         ▼
-           SQLite Database                  Unknown Person Database
-                 │                                         │
-                 └────────────────────┬────────────────────┘
-                                      ▼
-                           Streamlit Dashboard
-                                      │
-          ┌───────────────┬──────────────┬───────────────┐
-          ▼               ▼              ▼               ▼
-     Live Feed     Visit History   Unknown Persons   Analytics
-```
+| Symptom | Fix |
+|---|---|
+| `No working webcam found` | Close apps using the camera; grant camera permission to the terminal; try `--source 1`. |
+| First run is very slow | Models are downloading (one time). Watch the progress in the terminal. |
+| Everyone shows as UNKNOWN | You skipped Step 4 — the log even warns "gallery is EMPTY". Register people first. |
+| You show as UNKNOWN despite being registered | Improve lighting, face the camera, re-register with more/better samples, or lower `FACE_MATCH_THRESHOLD` slightly. |
+| Preview window frozen / won't close | Click the window, press `q`; or Ctrl-C in the terminal. |
+| Dashboard shows "No live frame yet" | Start `python main.py run` first, then click 🔄 Refresh. |
 
 ---
 
-# Recognition Pipeline
-
-```text
-Frame
-  │
-  ▼
-YOLOv8
-(Person Detection)
-  │
-  ▼
-Crop Person
-  │
-  ▼
-InsightFace
-(Face Detection)
-  │
-  ▼
-Face Embedding (512-D Vector)
-  │
-  ▼
-Cosine Similarity
-  │
-  ▼
-Known? ──────────────► Yes ─► Log Visit
-  │
-  ▼
-No
-  │
-  ▼
-Save Unknown Face
-```
-
----
-
-# 📊 Database Schema
-
-## Stakeholders
-
-| Column         | Description           |
-| -------------- | --------------------- |
-| stakeholder_id | Primary Key           |
-| full_name      | Stakeholder Name      |
-| role           | Student/Faculty/Staff |
-| department     | Department            |
-| image_path     | Stored Image          |
-| embedding      | Face Embedding        |
-
----
-
-## Visits
-
-| Column          | Description |
-| --------------- | ----------- |
-| visit_id        | Primary Key |
-| stakeholder_id  | Foreign Key |
-| camera_location | Camera Name |
-| timestamp       | Visit Time  |
-
----
-
-## Unknown Persons
-
-| Column          | Description    |
-| --------------- | -------------- |
-| unknown_id      | Primary Key    |
-| image_path      | Captured Face  |
-| camera_location | Camera Name    |
-| timestamp       | Detection Time |
-
----
-
-# Streamlit Dashboard
-
-The dashboard provides the following modules:
-
-* Live Monitoring
-* Stakeholder Management
-* Visit History
-* Unknown Person Gallery
-* Analytics Dashboard
-* Search Records
-* Reports
-
----
-
-# Installation
+# Installation Guide
 
 ## Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/CampusAIStakeholderDetection.git
+git clone https://github.com/dilliram-code/sentinel.git
 
-cd CampusAIStakeholderDetection
+cd sentinel
+```
+## Create Virtual Environment
+
+### macOS / Linux
+
+```bash
+python3 -m venv .venv
 ```
 
+---
+
+## Activate Environment
+
+```bash
+source .venv/bin/activate
+```
+
+---
+
+## Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Run the Application
+
+### Main Detection System
+
+```bash
+python main.py run --location "MBUST Lab"
+```
+
+### Streamlit Dashboard
+
+```bash
+streamlit run dashboard/app.py
+```
 ---
 
 ## Create Virtual Environment
@@ -264,7 +282,7 @@ streamlit run dashboard/app.py
 
 ---
 
-# Development Phases
+# Development Phases 📈
 
 ## Phase 1
 
@@ -362,11 +380,14 @@ This project demonstrates practical implementation of:
 * **Yalamber Ingnam** (Master of Data Science)
 
 ---
-
+# ⚖️ Ethics note
+Even in a webcam demo, face embeddings are biometric data: enroll only
+people who consent, and delete `data/` when the demonstration is finished.
 # License
 
 This project is developed for academic and research purposes.
 
 ---
+⭐ If you find this project helpful, consider giving it a star on GitHub😊!
 
-⭐ If you find this project helpful, consider giving it a star on GitHub!
+
