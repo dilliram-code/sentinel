@@ -118,7 +118,7 @@ def visits_dataframe(limit, name_filter=None):
 
 def unknowns_dataframe(limit, only_unverified):
     rows = db_manager.fetch_unknowns(limit=limit,
-                                     only_unverified=only_unverified)
+                                    only_unverified=only_unverified)
     return pd.DataFrame(rows, columns=[
         "ID", "Timestamp", "Camera Location", "Image", "Verified"])
 
@@ -129,10 +129,21 @@ def stakeholders_dataframe():
         "ID", "UID", "Name", "Role", "Image", "Registered At"])
 
 
-# Header + headline metrics
+# Header + Logo + headline metrics
 # ---------------------------------------------------------------------------
-st.title("🎓 Campus Stakeholder Detection Dashboard")
-st.caption("Real-Time Stakeholder Identification & Unknown Person Registration")
+
+col1, col2 = st.columns([0.5, 9.5])
+
+with col1:
+    st.markdown("<div style='padding-top:18px'></div>", unsafe_allow_html=True)
+    st.image("assets/logo.png", width=80)
+
+with col2:
+    st.title("Campus Stakeholder Detection Dashboard")
+    st.caption("Real-Time Stakeholder Identification & Unknown Person Registration")
+    
+# st.title("🎓 Campus Stakeholder Detection Dashboard")
+# st.caption("Real-Time Stakeholder Identification & Unknown Person Registration")
 
 stats = db_manager.get_stats()
 c1, c2, c3, c4 = st.columns(4)
@@ -143,7 +154,7 @@ c4.metric("Unknown Persons", stats["unknowns"])
 
 tab_live, tab_visits, tab_unknown, tab_people, tab_reports = st.tabs(
     ["📡 Live Monitor", "🧾 Visit Logs", "❓ Unknown Persons",
-     "👥 Stakeholders", "📊 Reports"])
+    "👥 Stakeholders", "📊 Reports"])
 
 
 # Live monitor — shows the latest annotated frame saved by the pipeline
@@ -170,8 +181,8 @@ with tab_visits:
     st.dataframe(df, use_container_width=True, hide_index=True)
     if not df.empty:
         st.download_button("⬇️ Export CSV",
-                           df.to_csv(index=False).encode("utf-8"),
-                           "visit_logs.csv", "text/csv")
+                        df.to_csv(index=False).encode("utf-8"),
+                        "visit_logs.csv", "text/csv")
 
 # Unknown persons review queue
 # ---------------------------------------------------------------------------
@@ -197,7 +208,7 @@ with tab_unknown:
                 else:
                     st.write("*(image missing)*")
                 st.caption(f"#{row['ID']} • {row['Timestamp']} • "
-                           f"{row['Camera Location']}")
+                        f"{row['Camera Location']}")
                 if not row["Verified"]:
                     if st.button("Mark verified", key=f"verify_{row['ID']}"):
                         db_manager.mark_unknown_verified(int(row["ID"]))
@@ -211,10 +222,7 @@ with tab_people:
     st.subheader("Registered stakeholders")
     sdf = stakeholders_dataframe()
     st.dataframe(sdf.drop(columns=["Image"]),
-                 use_container_width=True, hide_index=True)
-    # st.caption("Enroll new stakeholders with:  "
-    #            "`python main.py register --uid S001 --name \"Full Name\" "
-    #            "--role Student --images path/to/photos/`")
+                use_container_width=True, hide_index=True)
 
 # Reports / analytics
 # ---------------------------------------------------------------------------
