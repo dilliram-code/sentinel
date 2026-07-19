@@ -26,6 +26,7 @@ st.set_page_config(page_title="Campus Stakeholder Detection Dashboard",
 # CUSTOM CSS
 ##############################################################
 
+# supress the default layout of streamlit
 st.markdown("""
 <style>
 
@@ -142,9 +143,6 @@ with col2:
     st.title("Campus Stakeholder Detection Dashboard")
     st.caption("Real-Time Stakeholder Identification & Unknown Person Registration")
     
-# st.title("🎓 Campus Stakeholder Detection Dashboard")
-# st.caption("Real-Time Stakeholder Identification & Unknown Person Registration")
-
 stats = db_manager.get_stats()
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Registered Stakeholders", stats["stakeholders"])
@@ -167,8 +165,7 @@ with tab_live:
     if os.path.isfile(settings.LATEST_FRAME_PATH):
         st.image(settings.LATEST_FRAME_PATH, use_container_width=True)
     else:
-        st.info("No live frame yet. Start the pipeline with:  "
-                "`python main.py run --source 0 --location \"Main Gate\"`")
+        st.info("No live frame yet.")
 
 # Visit logs
 # ---------------------------------------------------------------------------

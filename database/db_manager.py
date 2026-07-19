@@ -112,8 +112,6 @@ def add_stakeholder(stakeholder_uid, name, role, embedding, image_path=None):
 def load_stakeholder_gallery():
     """
     Load the full recognition gallery.
-    Returns (ids, names, roles, embeddings_matrix) where embeddings_matrix is
-    an (N, D) float32 array, or ([], [], [], None) when the DB is empty.
     """
     conn = get_connection()
     try:
@@ -168,8 +166,8 @@ def log_visit(stakeholder_id, camera_location, similarity):
     try:
         conn.execute(
             """INSERT INTO visit_logs (stakeholder_id, camera_location,
-                                       similarity, timestamp)
-               VALUES (?, ?, ?, ?)""",
+                                    similarity, timestamp)
+            VALUES (?, ?, ?, ?)""",
             (stakeholder_id, camera_location, float(similarity), now),
         )
         conn.commit()
@@ -181,7 +179,7 @@ def fetch_visits(limit=500, name_filter=None):
     """Recent visits joined with stakeholder info (newest first)."""
     query = """
         SELECT v.timestamp, s.name, s.role, s.stakeholder_uid,
-               v.camera_location, ROUND(v.similarity, 3)
+            v.camera_location, ROUND(v.similarity, 3)
         FROM visit_logs v JOIN stakeholders s ON s.id = v.stakeholder_id
     """
     params = []
@@ -221,7 +219,7 @@ def log_unknown(image_path, embedding, camera_location):
 def fetch_unknowns(limit=200, only_unverified=False):
     """Recent unknown-person records (newest first)."""
     query = """SELECT id, timestamp, camera_location, image_path, verified
-               FROM unknown_persons"""
+            FROM unknown_persons"""
     if only_unverified:
         query += " WHERE verified = 0"
     query += " ORDER BY timestamp DESC LIMIT ?"
