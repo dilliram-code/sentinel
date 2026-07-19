@@ -7,6 +7,7 @@ Run from the project root:
 
 import os
 import sys
+from datetime import datetime
 
 # Make project-root imports work when Streamlit runs this file directly.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,8 +19,92 @@ from config import settings
 from database import db_manager
 
 st.set_page_config(page_title="Campus Stakeholder Detection Dashboard",
-                   page_icon="🎥", layout="wide")
+                page_icon="🎓", 
+                layout="wide",     
+                initial_sidebar_state="expanded"
+)
+# CUSTOM CSS
+##############################################################
 
+st.markdown("""
+<style>
+
+#MainMenu {
+    visibility:hidden;
+}
+
+footer{
+    visibility:hidden;
+}
+
+header{
+    visibility:hidden;
+}
+
+.block-container{
+    padding-top:1rem;
+}
+
+html, body, [class*="css"]{
+    font-family: 'Segoe UI';
+}
+
+/* Sidebar */
+
+section[data-testid="stSidebar"]{
+    background-color:#0F172A;
+}
+
+section[data-testid="stSidebar"] *{
+    color:white;
+}
+
+/* KPI Cards */
+
+.metric-card{
+    background-color:white;
+    border-radius:15px;
+    padding:20px;
+    text-align:center;
+    box-shadow:0px 5px 15px rgba(0,0,0,.08);
+}
+
+.metric-title{
+    font-size:16px;
+    color:gray;
+}
+
+.metric-value{
+    font-size:34px;
+    font-weight:bold;
+}
+
+/* Dashboard Title */
+
+.title{
+    font-size:36px;
+    font-weight:bold;
+}
+
+.subtitle{
+    color:gray;
+    margin-top:-10px;
+    margin-bottom:25px;
+}
+
+/* Footer */
+
+.footer{
+    text-align:center;
+    color:gray;
+    margin-top:40px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
+# database initialization
 db_manager.init_db()
 
 
@@ -46,7 +131,7 @@ def stakeholders_dataframe():
 
 # Header + headline metrics
 # ---------------------------------------------------------------------------
-st.title("🎥 Campus Stakeholder Detection Dashboard")
+st.title("🎓 Campus Stakeholder Detection Dashboard")
 st.caption("Real-Time Stakeholder Identification & Unknown Person Registration")
 
 stats = db_manager.get_stats()
@@ -149,3 +234,17 @@ with tab_reports:
             st.bar_chart(df.groupby("Camera Location").size())
         st.markdown("**Visits per role**")
         st.bar_chart(df.groupby("Role").size())
+
+st.markdown(
+
+    f"""
+    <div class='footer'>
+    🎓 Real-Time Campus Stakeholder Identification System
+    <br>
+    Developed using Streamlit | YOLOv8 | InsightFace | SQLite
+    <br>
+    {datetime.now().strftime("%d %B %Y")}
+    </div>
+    """,
+    unsafe_allow_html=True
+)
