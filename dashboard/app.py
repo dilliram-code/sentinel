@@ -212,9 +212,9 @@ with tab_people:
     sdf = stakeholders_dataframe()
     st.dataframe(sdf.drop(columns=["Image"]),
                  use_container_width=True, hide_index=True)
-    st.caption("Enroll new stakeholders with:  "
-               "`python main.py register --uid S001 --name \"Full Name\" "
-               "--role Student --images path/to/photos/`")
+    # st.caption("Enroll new stakeholders with:  "
+    #            "`python main.py register --uid S001 --name \"Full Name\" "
+    #            "--role Student --images path/to/photos/`")
 
 # Reports / analytics
 # ---------------------------------------------------------------------------
