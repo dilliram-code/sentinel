@@ -3,10 +3,8 @@ camera/webcam_stream.py
 -----------------------
 Laptop-webcam video source (with video-file support for offline testing).
 
-This project version is webcam-first: your laptop camera plays the role of
-the "CCTV camera" from the proposal. If you later connect a real IP camera,
-you only need to pass its RTSP URL as the source — everything else is
-unchanged (hint: rtsp://user:password@camera-ip:554/stream-path).
+for CCTV camera: pass RTSP URL as the source — everything else is
+unchanged (hint: rtsp://user:nexus_password@mbust_camera-ip:554/stream-path).
 """
 
 import time
