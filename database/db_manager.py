@@ -92,14 +92,14 @@ def add_stakeholder(stakeholder_uid, name, role, embedding, image_path=None):
         cur.execute(
             """
             INSERT INTO stakeholders (stakeholder_uid, name, role, embedding,
-                                      image_path, registered_at)
+                                    image_path, registered_at)
             VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(stakeholder_uid) DO UPDATE SET
                 name=excluded.name, role=excluded.role,
                 embedding=excluded.embedding, image_path=excluded.image_path
             """,
             (stakeholder_uid, name, role, embedding_to_blob(embedding),
-             image_path, now),
+            image_path, now),
         )
         conn.commit()
         cur.execute("SELECT id FROM stakeholders WHERE stakeholder_uid=?",

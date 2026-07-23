@@ -1,8 +1,6 @@
 """
 detection/person_detector.py
 ----------------------------
-YOLOv8 person detection (Jocher et al., 2023) in modular/functional style.
-The model handle is kept as module-level state and lazy-loaded once.
 """
 
 from ultralytics import YOLO
@@ -18,7 +16,6 @@ _model = None  # module-level model handle (loaded once)
 def init_detector(model_path=None):
     """
     Load the YOLOv8 model. Called automatically by detect_persons() if needed.
-    Pass a fine-tuned checkpoint path to use a campus-specific model.
     """
     global _model
     path = model_path or settings.YOLO_MODEL_PATH
@@ -30,9 +27,6 @@ def init_detector(model_path=None):
 def detect_persons(frame, conf=None):
     """
     Detect persons in a BGR frame.
-
-    Returns a list of dicts: {"box": (x1, y1, x2, y2), "conf": float}
-    Only COCO class 0 ("person") is kept.
     """
     global _model
     if _model is None:

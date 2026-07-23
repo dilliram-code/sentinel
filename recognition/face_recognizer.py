@@ -1,9 +1,5 @@
 """
 recognition/face_recognizer.py
-------------------------------
-Face embedding extraction (InsightFace / ArcFace — Deng et al., 2019) and
-identity matching against the stakeholder gallery. Functional style with a
-lazily initialized module-level model handle.
 """
 
 import numpy as np
@@ -32,8 +28,7 @@ def init_face_model():
 
 def extract_faces(frame):
     """
-    Detect faces in a BGR frame and return a list of dicts:
-        {"box": (x1, y1, x2, y2), "embedding": (512,) float32 L2-normalized}
+    Detect faces in a BGR frame and return a list of dicts.
     """
     global _face_app
     if _face_app is None:
@@ -67,7 +62,6 @@ def normalize(embedding):
 def cosine_similarities(embedding, gallery_matrix):
     """
     Cosine similarity of one embedding vs. an (N, D) gallery matrix.
-    All vectors are (re)normalized, so this is a plain dot product.
     """
     emb = normalize(embedding)
     gal = gallery_matrix / np.maximum(
@@ -79,9 +73,6 @@ def cosine_similarities(embedding, gallery_matrix):
 def match_embedding(embedding, gallery_matrix, threshold=None):
     """
     Match one embedding against the gallery.
-
-    Returns (best_index, best_similarity, is_match). When the gallery is
-    empty, returns (-1, 0.0, False).
     """
     if gallery_matrix is None or len(gallery_matrix) == 0:
         return -1, 0.0, False

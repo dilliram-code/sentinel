@@ -76,7 +76,7 @@ def cmd_check(_args):
         except ImportError as exc:
             ok = False
             print(f"[FAIL] library '{lib}' missing -> pip install -r "
-                  f"requirements.txt   ({exc})")
+                f"requirements.txt   ({exc})")
 
     # 2. Folders + database ---------------------------------------------
     try:

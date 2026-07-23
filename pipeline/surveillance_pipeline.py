@@ -4,10 +4,8 @@ pipeline/surveillance_pipeline.py
 """
 
 import time
-
 import cv2
 import numpy as np
-
 from camera import webcam_stream
 from config import settings
 from database import db_manager

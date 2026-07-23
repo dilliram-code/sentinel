@@ -1,10 +1,7 @@
 """
 camera/webcam_stream.py
 -----------------------
-Laptop-webcam video source (with video-file support for offline testing).
-
-for CCTV camera: pass RTSP URL as the source — everything else is
-unchanged (hint: rtsp://user:nexus_password@mbust_camera-ip:554/stream-path).
+for CCTV camera: pass RTSP URL as the source
 """
 
 import time
@@ -25,8 +22,6 @@ WARMUP_TIMEOUT_SEC = 5.0
 def resolve_source(source):
     """
     Normalize a user-supplied source:
-        "0"/"1"/... -> int webcam index
-        anything else (video file path / rtsp url) stays a string
     """
     if isinstance(source, int):
         return source
@@ -71,10 +66,6 @@ def find_working_webcam():
 def open_stream(source=0):
     """
     Open the video source and return a cv2.VideoCapture, or None on failure.
-
-    * int / "0"    -> that webcam index; if it fails, auto-probe other indices
-    * "clip.mp4"   -> recorded video file (great for testing without a camera)
-    * "rtsp://..." -> IP/CCTV camera (future upgrade path)
     """
     src = resolve_source(source)
 
@@ -89,9 +80,7 @@ def open_stream(source=0):
         if cap is not None:
             return cap
         log.error(
-            "No working webcam found. Checklist: (1) close Zoom/Teams/browser "
-            "tabs using the camera, (2) check OS camera permission for your "
-            "terminal/Python, (3) try another --source index (0/1/2)."
+            "No working webcam found."
         )
         return None
 
