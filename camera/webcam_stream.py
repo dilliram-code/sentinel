@@ -15,8 +15,8 @@ log = get_logger()
 # How many webcam indices to probe when auto-detecting (0 = built-in laptop
 # cam on almost every machine; 1, 2 = external USB cams).
 MAX_PROBE_INDEX = 3
-WARMUP_FRAMES = 5          # discard first frames (auto-exposure settling)
-WARMUP_TIMEOUT_SEC = 5.0
+WARMUP_FRAMES = 2          # discard first frames (auto-exposure settling)
+WARMUP_TIMEOUT_SEC = 1.0
 
 
 def resolve_source(source):
@@ -31,7 +31,8 @@ def resolve_source(source):
 
 def _open_index(index):
     """Try to open one webcam index and pull a real frame. None on failure."""
-    cap = cv2.VideoCapture(index)
+    # cap = cv2.VideoCapture(index, cv2.CAP_AVFOUNDATION) # for mac only
+    cap = cv2.VideoCapture(index)                           # default
     if not cap.isOpened():
         cap.release()
         return None

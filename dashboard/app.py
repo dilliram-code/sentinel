@@ -31,6 +31,8 @@ st.set_page_config(page_title="Campus Stakeholder Detection Dashboard",
 st.markdown("""
 <style>
 
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
 #MainMenu {
     visibility:hidden;
 }
@@ -44,45 +46,85 @@ header{
 }
 
 .block-container{
-    padding-top:1rem;
+    padding-top:1.2rem;
+    padding-bottom:2rem;
 }
 
 html, body, [class*="css"]{
-    font-family: 'Segoe UI';
-    background-color: #0B0C3B;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
-/* Sidebar */
+*{
+    scrollbar-width: thin;
+    scrollbar-color: rgba(124, 58, 237, 0.5) transparent;
+}
 
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce){
+    *{
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* Visible keyboard focus for accessibility */
+button:focus-visible, input:focus-visible, [tabindex]:focus-visible{
+    outline: 2px solid #A5B4FC !important;
+    outline-offset: 2px;
+}
+
+/* Full app gradient background (fixed, covers scroll area) + soft glow blobs */
+.stApp{
+    background:
+    radial-gradient(circle at 15% 10%, rgba(124, 58, 237, 0.35) 0%, rgba(124, 58, 237, 0) 45%),
+    radial-gradient(circle at 85% 0%, rgba(99, 102, 241, 0.30) 0%, rgba(99, 102, 241, 0) 40%),
+    radial-gradient(circle at 90% 85%, rgba(165, 180, 252, 0.18) 0%, rgba(165, 180, 252, 0) 45%),
+    linear-gradient(
+    135deg,
+    #020617 0%,
+    #172554 30%,
+    #4C1D95 65%,
+    #7C3ABD 100%
+);
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+/* Make default text readable on the dark gradient */
+.stApp, .stApp p, .stApp span, .stApp label, .stMarkdown, .stCaption {
+    color: #E5E7EB;
+}
+
+::selection{
+    background: rgba(124, 58, 237, 0.45);
+    color: #FFFFFF;
+}
+
+/* Sidebar — glassmorphism panel instead of a flat gradient fill */
 section[data-testid="stSidebar"]{
-    background-color:#0B0C1B;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    border-right: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow: 8px 0 32px rgba(2, 6, 23, 0.35);
 }
 
 section[data-testid="stSidebar"] *{
     color:white;
 }
 
-/* KPI Cards */
-
-.metric-card{
-    background-color:white;
-    border-radius:15px;
-    padding:20px;
-    text-align:center;
-    box-shadow:0px 5px 15px rgba(0,0,0,.08);
-}
-
-.metric-title{
-    font-size:16px;
-    color:gray;
-}
-
-.metric-value{
-    font-size:34px;
-    font-weight:bold;
-}
-
 /* Dashboard Title */
+
+h1 {
+    background: linear-gradient(90deg, #C4B5FD, #7C3AED, #A5B4FC);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800 !important;
+    letter-spacing: -0.5px;
+    filter: drop-shadow(0 2px 18px rgba(124, 58, 237, 0.35));
+}
 
 .title{
     font-size:36px;
@@ -90,31 +132,268 @@ section[data-testid="stSidebar"] *{
 }
 
 .subtitle{
-    color:gray;
+    color:#C7C9D9;
     margin-top:-10px;
     margin-bottom:25px;
 }
 
-/* Streamlit Tabs Customization */
+[data-testid="stCaptionContainer"] p{
+    color: #A5B4FC !important;
+}
+
+/* ---------------- KPI Metric Cards (glassmorphism) ---------------- */
+
+[data-testid="stMetric"]{
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 20px;
+    padding: 18px 16px 14px 16px;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+[data-testid="stMetric"]::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0;
+    height:3px;
+    background: linear-gradient(90deg, #7C3AED, #A5B4FC, #7C3AED);
+    opacity: 0.9;
+}
+
+[data-testid="stMetric"]::after{
+    content:"";
+    position:absolute;
+    top:-60%; left:-20%;
+    width:60%; height:220%;
+    background: linear-gradient(120deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 60%);
+    transform: rotate(20deg);
+    pointer-events:none;
+}
+
+[data-testid="stMetric"]:hover{
+    transform: translateY(-4px);
+    border-color: rgba(124, 58, 237, 0.55);
+    box-shadow: 0 14px 36px rgba(124, 58, 237, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+[data-testid="stMetricLabel"] p{
+    color: #C4B5FD !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+[data-testid="stMetricValue"]{
+    font-family: 'Poppins', sans-serif;
+    font-size: 30px !important;
+    font-weight: 700 !important;
+    color: #FFFFFF !important;
+}
+
+.metric-card{
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius:18px;
+    padding:20px;
+    text-align:center;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+.metric-title{
+    font-size:16px;
+    color:#C4B5FD;
+}
+
+.metric-value{
+    font-size:34px;
+    font-weight:bold;
+    color:#FFFFFF;
+}
+
+/* ---------------- Streamlit Tabs Customization ---------------- */
+
+div[data-baseweb="tab-list"]{
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    padding: 6px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
 button[data-baseweb="tab"] {
-    margin-right: 35px !important; /* Increased space between tabs */
-    padding-left: 10px !important;
-    padding-right: 10px !important;
+    margin-right: 4px !important;
+    padding: 8px 18px !important;
     background-color: transparent !important;
+    border-radius: 14px !important;
+    transition: background 0.25s ease;
 }
 
-/* Targeting the text inside the tabs to increase font size */
+button[data-baseweb="tab"]:hover{
+    background: rgba(124, 58, 237, 0.20) !important;
+}
+
+button[data-baseweb="tab"][aria-selected="true"]{
+    background: linear-gradient(135deg, rgba(49, 46, 129, 0.85), rgba(124, 58, 237, 0.85)) !important;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 18px rgba(124, 58, 237, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+/* Targeting the text inside the tabs */
 button[data-baseweb="tab"] p {
-    font-size: 35px !important; /* Increased font size */
-    font-weight: bold !important; /* Increased font weight */
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #D1D5DB !important;
 }
 
-/* Footer */
+button[data-baseweb="tab"][aria-selected="true"] p{
+    color: #FFFFFF !important;
+}
+
+[data-baseweb="tab-highlight"]{
+    display:none;
+}
+
+/* ---------------- Buttons (frosted glass, gradient sheen) ---------------- */
+
+.stButton>button, .stDownloadButton>button{
+    background: linear-gradient(135deg, rgba(49, 46, 129, 0.55), rgba(124, 58, 237, 0.55));
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 12px;
+    padding: 8px 18px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.stButton>button:hover, .stDownloadButton>button:hover{
+    transform: translateY(-2px);
+    border-color: rgba(165, 180, 252, 0.55);
+    box-shadow: 0 10px 26px rgba(124, 58, 237, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.20);
+    color: white;
+}
+
+/* ---------------- Inputs ---------------- */
+
+.stTextInput input, .stNumberInput input{
+    background: rgba(255, 255, 255, 0.07) !important;
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    color: white !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.20) !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stTextInput input:focus, .stNumberInput input:focus{
+    border-color: rgba(165, 180, 252, 0.65) !important;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.25) !important;
+}
+
+.stCheckbox label p{
+    color: #E5E7EB !important;
+}
+
+/* ---------------- Dataframes / tables ---------------- */
+
+[data-testid="stDataFrame"]{
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.30);
+}
+
+/* Images (captured face thumbnails, logo, live frame) get a glass frame */
+[data-testid="stImage"] img{
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.35);
+}
+
+/* ---------------- Subheaders ---------------- */
+
+h2, h3{
+    font-family: 'Poppins', sans-serif;
+    color: #EDE9FE !important;
+}
+
+hr{
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ---------------- Footer (glass card) ---------------- */
 
 .footer{
     text-align:center;
-    color:gray;
+    color:#A5B4FC;
     margin-top:40px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    border-radius: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.25);
+}
+
+/* ---------------- Responsive tweaks for mobile ---------------- */
+
+@media (max-width: 768px){
+    .block-container{
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        padding-top: 0.6rem;
+    }
+
+    h1{
+        font-size: 24px !important;
+    }
+
+    [data-testid="stCaptionContainer"] p{
+        font-size: 12px !important;
+    }
+
+    [data-testid="stMetric"]{
+        padding: 12px 10px 10px 10px;
+        border-radius: 14px;
+    }
+
+    [data-testid="stMetricValue"]{
+        font-size: 22px !important;
+    }
+
+    [data-testid="stMetricLabel"] p{
+        font-size: 11px !important;
+    }
+
+    button[data-baseweb="tab"] p {
+        font-size: 13px !important;
+    }
+
+    button[data-baseweb="tab"] {
+        padding: 6px 10px !important;
+    }
+
+    div[data-baseweb="tab-list"]{
+        flex-wrap: wrap;
+    }
 }
 
 </style>
@@ -259,7 +538,8 @@ with tab_reports:
             yaxis=dict(fixedrange=True, rangemode="tozero", tickformat="d"), 
             plot_bgcolor="rgba(0,0,0,0)",
             paper_bgcolor="rgba(0,0,0,0)",
-            margin=dict(l=20, r=20, t=40, b=20)
+            margin=dict(l=20, r=20, t=40, b=20),
+            font=dict(color="#E5E7EB"),
         )
         
         # Hide the Plotly toolbar menu for a cleaner dashboard look
