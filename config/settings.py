@@ -7,6 +7,10 @@ All modules import their constants from here so tuning happens in ONE place.
 
 import os
 
+# # reads .env and injects values into os.environ
+# from dotenv import load_dotenv
+# load_dotenv() 
+
 # Base paths
 # ---------------------------------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -54,9 +58,12 @@ UNKNOWN_LOG_COOLDOWN_SEC = 120  # don't re-save the same unknown within N second
 #   "path/to/video.mp4"            -> recorded footage (testing without camera)
 #   "rtsp://user:pass@ip:554/..."  -> future upgrade to a real IP/CCTV camera
 # If the chosen index fails, camera/webcam_stream.py auto-probes 0..2.
+
+# DEFAULT_SOURCE = os.environ.get("CCTV_RTSP_URL", 0)
+
 DEFAULT_SOURCE          = 0
 DEFAULT_CAMERA_LOCATION = "Laptop Webcam"
-FRAME_PROCESS_EVERY_N   = 2     # process every Nth frame (real-time speed-up)
+FRAME_PROCESS_EVERY_N   = 30     # process every Nth frame (real-time speed-up)
 DISPLAY_WINDOW          = True  # cv2.imshow preview (set False on headless servers)
 SAVE_LATEST_FRAME       = True  # write annotated frame for the Streamlit dashboard
 
