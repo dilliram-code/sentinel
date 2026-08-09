@@ -8,6 +8,8 @@ Optimized for Apple Silicon / MacBook M2.
 import os
 import torch
 
+from dotenv import load_dotenv
+load_dotenv()
 
 # ============================================================================
 # BASE PATHS
@@ -193,7 +195,11 @@ VISIT_LOG_COOLDOWN_SEC = 60
 # CAMERA
 # ============================================================================
 
-DEFAULT_SOURCE = 0
+# DEFAULT_SOURCE = 0
+DEFAULT_SOURCE = os.getenv(
+    "RTSP_URL",
+    "0"
+)
 
 DEFAULT_CAMERA_LOCATION = "Laptop Webcam"
 
