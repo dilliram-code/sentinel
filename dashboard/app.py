@@ -1054,7 +1054,281 @@ with st.sidebar:
 stats = db_manager.get_stats()
 
 
-c1, c2, c3, c4 = st.columns(4)
+# c1, c2, c3, c4 = st.columns(4)
+
+
+# c1.metric(
+#     "Registered Stakeholders",
+#     stats["stakeholders"]
+# )
+
+# c2.metric(
+#     "Total Visits Logged",
+#     stats["visits"]
+# )
+
+# c3.metric(
+#     "Visits Today",
+#     stats["visits_today"]
+# )
+
+# c4.metric(
+#     "Unknown Persons",
+#     stats["unknowns"]
+# )
+
+
+# ============================================================================
+# METRIC CARDS
+# ============================================================================
+
+st.markdown(
+    """
+    <style>
+
+    /* ============================================================
+        METRIC HOVER EFFECT
+       ============================================================ */
+
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+
+        transition:
+            transform 0.25s ease,
+            filter 0.25s ease;
+
+    }
+
+    /* Individual metric card */
+
+    [data-testid="stMetric"] {
+
+        transition:
+            transform 0.28s ease,
+            box-shadow 0.28s ease,
+            border-color 0.28s ease,
+            background 0.28s ease;
+
+        cursor: pointer;
+
+        position: relative;
+
+        overflow: hidden;
+    }
+
+
+    /* ============================================================
+       HOVER
+       ============================================================ */
+
+    [data-testid="stMetric"]:hover {
+
+        transform:
+            translateY(-8px)
+            scale(1.025);
+
+        background:
+            rgba(255, 255, 255, 0.11);
+
+        border-color:
+            rgba(196, 181, 253, 0.55);
+
+        box-shadow:
+
+            0 18px 45px
+            rgba(2, 6, 23, 0.45),
+
+            0 0 25px
+            rgba(124, 58, 237, 0.28),
+
+            inset 0 1px 0
+            rgba(255, 255, 255, 0.20);
+    }
+
+
+    /* ============================================================
+       TOP GLOW LINE
+       ============================================================ */
+
+    [data-testid="stMetric"]::before {
+
+        content: "";
+
+        position: absolute;
+
+        top: 0;
+        left: 0;
+
+        width: 100%;
+        height: 3px;
+
+        background:
+            linear-gradient(
+                90deg,
+                #7C3AED,
+                #A78BFA,
+                #C4B5FD,
+                #7C3AED
+            );
+
+        background-size:
+            200% 100%;
+
+        opacity: 0.75;
+
+        transition:
+            opacity 0.25s ease,
+            height 0.25s ease;
+    }
+
+
+    [data-testid="stMetric"]:hover::before {
+
+        opacity: 1;
+
+        height: 4px;
+
+        animation:
+            metricGlow 2s linear infinite;
+    }
+
+
+    /* ============================================================
+       SUBTLE SHINE EFFECT
+       ============================================================ */
+
+    [data-testid="stMetric"]::after {
+
+        content: "";
+
+        position: absolute;
+
+        top: -100%;
+        left: -120%;
+
+        width: 70%;
+        height: 300%;
+
+        background:
+            linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.12),
+                transparent
+            );
+
+        transform:
+            rotate(20deg);
+
+        transition:
+            left 0.65s ease;
+
+        pointer-events: none;
+    }
+
+
+    [data-testid="stMetric"]:hover::after {
+
+        left: 140%;
+    }
+
+
+    /* ============================================================
+       VALUE ANIMATION
+       ============================================================ */
+
+    [data-testid="stMetricValue"] {
+
+        transition:
+            transform 0.25s ease,
+            text-shadow 0.25s ease;
+
+    }
+
+
+    [data-testid="stMetric"]:hover
+    [data-testid="stMetricValue"] {
+
+        transform:
+            scale(1.08);
+
+        text-shadow:
+
+            0 0 12px
+            rgba(196, 181, 253, 0.55),
+
+            0 0 30px
+            rgba(124, 58, 237, 0.30);
+    }
+
+
+    /* ============================================================
+       LABEL
+       ============================================================ */
+
+    [data-testid="stMetricLabel"] {
+
+        transition:
+            transform 0.25s ease;
+
+    }
+
+
+    [data-testid="stMetric"]:hover
+    [data-testid="stMetricLabel"] {
+
+        transform:
+            translateY(-2px);
+    }
+
+
+    /* ============================================================
+       GLOW ANIMATION
+       ============================================================ */
+
+    @keyframes metricGlow {
+
+        0% {
+            background-position: 0% 50%;
+        }
+
+        100% {
+            background-position: 200% 50%;
+        }
+
+    }
+
+
+    /* ============================================================
+       REDUCE MOTION FOR ACCESSIBILITY
+       ============================================================ */
+
+    @media (prefers-reduced-motion: reduce) {
+
+        [data-testid="stMetric"],
+        [data-testid="stMetricValue"],
+        [data-testid="stMetricLabel"] {
+
+            transition: none !important;
+
+            animation: none !important;
+        }
+
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# ============================================================================
+# METRICS
+# ============================================================================
+
+c1, c2, c3, c4 = st.columns(
+    4,
+    gap="medium"
+)
 
 
 c1.metric(
@@ -1062,15 +1336,18 @@ c1.metric(
     stats["stakeholders"]
 )
 
+
 c2.metric(
     "Total Visits Logged",
     stats["visits"]
 )
 
+
 c3.metric(
     "Visits Today",
     stats["visits_today"]
 )
+
 
 c4.metric(
     "Unknown Persons",
@@ -1481,14 +1758,14 @@ with tab_reports:
             color="Role",
 
             color_discrete_sequence=
-                px.colors.qualitative.Vivid,
+                px.colors.qualitative.Alphabet,
 
             title="<b>Visits per Role</b>"
 
         )
 
         fig_role.update_traces(
-            width=0.4
+            width=0.2
         )
 
         fig_role.update_layout(
