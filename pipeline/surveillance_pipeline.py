@@ -1,11 +1,28 @@
 """
 pipeline/surveillance_pipeline.py
 
+Real-time campus surveillance pipeline optimized for Apple Silicon.
+
+Features:
+    - YOLOv8 person detection
+    - Apple MPS acceleration for YOLO
+    - InsightFace recognition
+    - CoreML acceleration when available
+    - Background camera capture
+    - Latest-frame-only processing
+    - Persistent detection overlays
+    - Atomic latest-frame JPEG writing
+    - Reduced Streamlit flickering
+    - Unknown-person registration
+    - Visit logging
 """
 
+import os
 import time
+
 import cv2
 import numpy as np
+
 from camera import webcam_stream
 from config import settings
 from database import db_manager
@@ -14,204 +31,1130 @@ from recognition import face_recognizer
 from utils import image_utils
 from utils.logger import get_logger
 
+
 log = get_logger()
 
-# Module-level runtime state
-# ---------------------------------------------------------------------------
-_gallery = {"ids": [], "names": [], "roles": [], "matrix": None, "loaded_at": 0.0}
-_last_visit_log = {}      # stakeholder_id -> unix time of last DB log
-_recent_unknowns = []     # list of (embedding, unix_time) for de-duplication
 
-GALLERY_REFRESH_SEC = 60  # re-read stakeholder gallery from DB every minute
+# ============================================================================
+# RUNTIME STATE
+# ============================================================================
 
+_gallery = {
+    "ids": [],
+    "names": [],
+    "roles": [],
+    "matrix": None,
+    "loaded_at": 0.0,
+}
+
+
+_last_visit_log = {}
+
+_recent_unknowns = []
+
+
+# ============================================================================
+# PERFORMANCE SETTINGS
+# ============================================================================
+
+GALLERY_REFRESH_SEC = 60
+
+# How often the annotated frame is written to disk.
+#
+# The camera can run at ~30 FPS while the dashboard only needs
+# around 10-15 FPS.
+LIVE_FRAME_FPS = getattr(
+    settings,
+    "LIVE_FRAME_FPS",
+    12
+)
+
+LIVE_JPEG_QUALITY = getattr(
+    settings,
+    "LIVE_JPEG_QUALITY",
+    85
+)
+
+
+# ============================================================================
+# GALLERY
+# ============================================================================
 
 def refresh_gallery(force=False):
-    """(Re)load the stakeholder gallery from the database."""
+
     now = time.time()
-    if not force and _gallery["matrix"] is not None \
-            and now - _gallery["loaded_at"] < GALLERY_REFRESH_SEC:
+
+    if (
+        not force
+        and _gallery["matrix"] is not None
+        and now - _gallery["loaded_at"]
+        < GALLERY_REFRESH_SEC
+    ):
+
         return
-    ids, names, roles, matrix = db_manager.load_stakeholder_gallery()
-    _gallery.update(ids=ids, names=names, roles=roles,
-                    matrix=matrix, loaded_at=now)
+
+    ids, names, roles, matrix = (
+        db_manager.load_stakeholder_gallery()
+    )
+
+    _gallery["ids"] = ids
+    _gallery["names"] = names
+    _gallery["roles"] = roles
+    _gallery["matrix"] = matrix
+    _gallery["loaded_at"] = now
+
     if not ids:
-        log.warning("Stakeholder gallery is EMPTY — every face will be "
-                    "flagged UNKNOWN. Register people first: "
-                    "python main.py register --uid S001 --name \"...\" "
-                    "--role Student --webcam")
+
+        log.warning(
+            "Stakeholder gallery is EMPTY."
+        )
+
     else:
-        log.info("Stakeholder gallery loaded: %d identities", len(ids))
+
+        log.info(
+            "Stakeholder gallery loaded: %d identities",
+            len(ids)
+        )
 
 
-def _should_log_visit(stakeholder_id):
-    """Cooldown: avoid duplicate visit rows for someone standing in frame."""
+# ============================================================================
+# VISIT COOLDOWN
+# ============================================================================
+
+def _should_log_visit(
+    stakeholder_id
+):
+
     now = time.time()
-    last = _last_visit_log.get(stakeholder_id, 0.0)
-    if now - last >= settings.VISIT_LOG_COOLDOWN_SEC:
-        _last_visit_log[stakeholder_id] = now
+
+    last = _last_visit_log.get(
+        stakeholder_id,
+        0.0
+    )
+
+    if (
+        now - last
+        >= settings.VISIT_LOG_COOLDOWN_SEC
+    ):
+
+        _last_visit_log[
+            stakeholder_id
+        ] = now
+
         return True
+
     return False
 
 
-def _is_new_unknown(embedding):
-    """
-    De-duplicate unknowns: skip if a very similar face was saved recently.
-    Also prunes expired cache entries.
-    """
+# ============================================================================
+# UNKNOWN PERSON DE-DUPLICATION
+# ============================================================================
+
+def _is_new_unknown(
+    embedding
+):
+
     now = time.time()
+
+    # --------------------------------------------------------
+    # Remove expired unknown embeddings
+    # --------------------------------------------------------
+
     _recent_unknowns[:] = [
-        (emb, ts) for emb, ts in _recent_unknowns
-        if now - ts < settings.UNKNOWN_LOG_COOLDOWN_SEC
+
+        (emb, timestamp)
+
+        for emb, timestamp
+        in _recent_unknowns
+
+        if (
+            now - timestamp
+            < settings.UNKNOWN_LOG_COOLDOWN_SEC
+        )
     ]
-    for emb, _ts in _recent_unknowns:
-        if float(np.dot(face_recognizer.normalize(embedding), emb)) \
-                >= settings.UNKNOWN_DUP_THRESHOLD:
+
+    # --------------------------------------------------------
+    # Normalize current embedding
+    # --------------------------------------------------------
+
+    normalized = (
+        face_recognizer.normalize(
+            embedding
+        )
+    )
+
+    # --------------------------------------------------------
+    # Compare with recent unknowns
+    # --------------------------------------------------------
+
+    for emb, _timestamp in (
+        _recent_unknowns
+    ):
+
+        similarity = float(
+            np.dot(
+                normalized,
+                emb
+            )
+        )
+
+        if (
+            similarity
+            >= settings.UNKNOWN_DUP_THRESHOLD
+        ):
+
             return False
-    _recent_unknowns.append((face_recognizer.normalize(embedding), now))
+
+    # --------------------------------------------------------
+    # Register this unknown
+    # --------------------------------------------------------
+
+    _recent_unknowns.append(
+        (
+            normalized,
+            now
+        )
+    )
+
     return True
 
 
-def _face_inside_person(face_box, person_boxes):
-    """True if the face-box centre lies inside any detected person box."""
-    fx = (face_box[0] + face_box[2]) / 2.0
-    fy = (face_box[1] + face_box[3]) / 2.0
-    for pb in person_boxes:
-        x1, y1, x2, y2 = pb["box"]
-        if x1 <= fx <= x2 and y1 <= fy <= y2:
+# ============================================================================
+# FACE INSIDE PERSON
+# ============================================================================
+
+def _face_inside_person(
+    face_box,
+    person_boxes
+):
+
+    fx = (
+        face_box[0]
+        + face_box[2]
+    ) / 2.0
+
+    fy = (
+        face_box[1]
+        + face_box[3]
+    ) / 2.0
+
+    for person in person_boxes:
+
+        x1, y1, x2, y2 = (
+            person["box"]
+        )
+
+        if (
+            x1 <= fx <= x2
+            and
+            y1 <= fy <= y2
+        ):
+
             return True
+
     return False
 
 
-# Per-frame processing
-# ---------------------------------------------------------------------------
-def process_frame(frame, camera_location):
-    """
-    Run detection + recognition + logging on one frame IN PLACE (annotations
-    are drawn on `frame`). Returns a summary dict for the caller/tests.
-    """
-    refresh_gallery()
+# ============================================================================
+# ATOMIC LIVE FRAME WRITER
+# ============================================================================
 
-    persons = person_detector.detect_persons(frame)
-    faces = face_recognizer.extract_faces(frame)
+def _write_latest_frame(
+    frame
+):
 
-    summary = {"persons": len(persons), "recognized": 0, "unknown": 0}
+    if not settings.SAVE_LATEST_FRAME:
 
-    # Person boxes first (thin, informational)
-    for det in persons:
-        image_utils.draw_box(frame, det["box"],
-                             f"person {det['conf']:.2f}",
-                             image_utils.COLOR_PERSON)
+        return False
 
-    for face in faces:
-        # If YOLO found people, only consider faces that belong to one of
-        # them (suppresses posters/photos on walls at the frame edge).
-        if persons and not _face_inside_person(face["box"], persons):
-            continue
+    final_path = (
+        settings.LATEST_FRAME_PATH
+    )
 
-        idx, sim, is_match = face_recognizer.match_embedding(
-            face["embedding"], _gallery["matrix"]
-        )
+    # --------------------------------------------------------
+    # Temporary file
+    #
+    # Never write directly to latest.jpg.
+    # --------------------------------------------------------
 
-        if is_match:
-            summary["recognized"] += 1
-            sid = _gallery["ids"][idx]
-            name = _gallery["names"][idx]
-            role = _gallery["roles"][idx]
-            image_utils.draw_box(frame, face["box"],
-                                 f"{name} ({role}) {sim:.2f}",
-                                 image_utils.COLOR_STAKEHOLDER)
-            if _should_log_visit(sid):
-                db_manager.log_visit(sid, camera_location, sim)
-                log.info("VISIT  | %s (%s) @ %s  sim=%.3f",
-                         name, role, camera_location, sim)
-        else:
-            summary["unknown"] += 1
-            image_utils.draw_box(frame, face["box"],
-                                 f"UNKNOWN {sim:.2f}",
-                                 image_utils.COLOR_UNKNOWN)
-            if _is_new_unknown(face["embedding"]):
-                path = image_utils.save_face_crop(
-                    frame, face["box"], settings.UNKNOWN_IMG_DIR, "unknown")
-                db_manager.log_unknown(path, face["embedding"], camera_location)
-                log.warning("UNKNOWN person registered @ %s -> %s",
-                            camera_location, path)
-
-    return summary
-
-
-# Main loop
-# ---------------------------------------------------------------------------
-def run_surveillance(source=None, camera_location=None, display=None,
-                     max_frames=None):
-    """
-    Continuous surveillance loop.
-    
-    """
-    settings.ensure_directories()
-    db_manager.init_db()
-
-    source = settings.DEFAULT_SOURCE if source is None else source
-    camera_location = camera_location or settings.DEFAULT_CAMERA_LOCATION
-    display = settings.DISPLAY_WINDOW if display is None else display
-
-    # Warm the models up-front so the first frame isn't slow.
-    person_detector.init_detector()
-    face_recognizer.init_face_model()
-    refresh_gallery(force=True)
-
-    cap = webcam_stream.open_stream(source)
-    if cap is None:
-        return
-
-    log.info("Surveillance started | source=%r location=%s", source,
-             camera_location)
-
-    frame_idx = processed = failures = 0
-    fps_time, fps_count, fps = time.time(), 0, 0.0
+    temp_path = (
+        final_path
+        + ".tmp.jpg"
+    )
 
     try:
+
+        # ----------------------------------------------------
+        # Ensure directory exists
+        # ----------------------------------------------------
+
+        directory = os.path.dirname(
+            final_path
+        )
+
+        if directory:
+
+            os.makedirs(
+                directory,
+                exist_ok=True
+            )
+
+        # ----------------------------------------------------
+        # Encode/write JPEG to temporary file
+        # ----------------------------------------------------
+
+        success = cv2.imwrite(
+
+            temp_path,
+
+            frame,
+
+            [
+                cv2.IMWRITE_JPEG_QUALITY,
+                int(LIVE_JPEG_QUALITY)
+            ]
+
+        )
+
+        if not success:
+
+            log.warning(
+                "cv2.imwrite() failed for live frame."
+            )
+
+            return False
+
+        # ----------------------------------------------------
+        # Atomic replacement
+        #
+        # Streamlit will see either the old complete JPEG
+        # or the new complete JPEG.
+        #
+        # It will never see a partially-written JPEG.
+        # ----------------------------------------------------
+
+        os.replace(
+            temp_path,
+            final_path
+        )
+
+        return True
+
+    except Exception as exc:
+
+        log.warning(
+            "Could not write latest frame: %s",
+            exc
+        )
+
+        # ----------------------------------------------------
+        # Clean temporary file
+        # ----------------------------------------------------
+
+        try:
+
+            if os.path.exists(
+                temp_path
+            ):
+
+                os.remove(
+                    temp_path
+                )
+
+        except Exception:
+
+            pass
+
+        return False
+
+
+# ============================================================================
+# DRAW PERSON DETECTIONS
+# ============================================================================
+
+def _draw_person_detections(
+    frame,
+    persons
+):
+
+    for det in persons:
+
+        box = det.get(
+            "box"
+        )
+
+        confidence = float(
+            det.get(
+                "conf",
+                0.0
+            )
+        )
+
+        if box is None:
+
+            continue
+
+        image_utils.draw_box(
+
+            frame,
+
+            box,
+
+            f"person {confidence:.2f}",
+
+            image_utils.COLOR_PERSON
+
+        )
+
+
+# ============================================================================
+# DRAW FACE DETECTIONS
+# ============================================================================
+
+def _draw_face_detections(
+    frame,
+    faces
+):
+
+    for face in faces:
+
+        box = face.get(
+            "box"
+        )
+
+        if box is None:
+
+            continue
+
+        label = face.get(
+            "label",
+            "UNKNOWN"
+        )
+
+        color = face.get(
+            "color",
+            image_utils.COLOR_UNKNOWN
+        )
+
+        image_utils.draw_box(
+
+            frame,
+
+            box,
+
+            label,
+
+            color
+
+        )
+
+
+# ============================================================================
+# PROCESS FRAME
+# ============================================================================
+
+def process_frame(
+    frame,
+    camera_location
+):
+
+    """
+    Run YOLO + InsightFace on one frame.
+
+    Returns:
+        summary
+        persons
+        faces_for_display
+
+    The original frame is NOT returned here.
+
+    This allows the main loop to maintain a clean camera frame
+    and draw the latest known detections on every frame.
+    """
+
+    refresh_gallery()
+
+    # ========================================================
+    # YOLO PERSON DETECTION
+    # ========================================================
+
+    persons = (
+        person_detector.detect_persons(
+            frame
+        )
+    )
+
+    # ========================================================
+    # INSIGHTFACE
+    # ========================================================
+
+    detected_faces = (
+        face_recognizer.extract_faces(
+            frame
+        )
+    )
+
+    # ========================================================
+    # SUMMARY
+    # ========================================================
+
+    summary = {
+
+        "persons": len(persons),
+
+        "recognized": 0,
+
+        "unknown": 0,
+    }
+
+    # ========================================================
+    # FACE DISPLAY RESULTS
+    # ========================================================
+
+    faces_for_display = []
+
+    # ========================================================
+    # PROCESS FACES
+    # ========================================================
+
+    for face in detected_faces:
+
+        # ----------------------------------------------------
+        # Check whether face belongs to detected person
+        # ----------------------------------------------------
+
+        if (
+            persons
+            and not _face_inside_person(
+                face["box"],
+                persons
+            )
+        ):
+
+            continue
+
+        # ----------------------------------------------------
+        # Match face against gallery
+        # ----------------------------------------------------
+
+        idx, similarity, is_match = (
+            face_recognizer.match_embedding(
+
+                face["embedding"],
+
+                _gallery["matrix"]
+
+            )
+        )
+
+        # ====================================================
+        # KNOWN PERSON
+        # ====================================================
+
+        if is_match:
+
+            summary[
+                "recognized"
+            ] += 1
+
+            stakeholder_id = (
+                _gallery["ids"][idx]
+            )
+
+            name = (
+                _gallery["names"][idx]
+            )
+
+            role = (
+                _gallery["roles"][idx]
+            )
+
+            label = (
+                f"{name} ({role}) "
+                f"{similarity:.2f}"
+            )
+
+            faces_for_display.append({
+
+                "box": face["box"],
+
+                "label": label,
+
+                "color":
+                    image_utils.COLOR_STAKEHOLDER,
+
+            })
+
+            # ------------------------------------------------
+            # Visit logging
+            # ------------------------------------------------
+
+            if _should_log_visit(
+                stakeholder_id
+            ):
+
+                db_manager.log_visit(
+
+                    stakeholder_id,
+
+                    camera_location,
+
+                    similarity
+
+                )
+
+                log.info(
+
+                    "VISIT | %s (%s) @ %s sim=%.3f",
+
+                    name,
+
+                    role,
+
+                    camera_location,
+
+                    similarity
+
+                )
+
+        # ====================================================
+        # UNKNOWN PERSON
+        # ====================================================
+
+        else:
+
+            summary[
+                "unknown"
+            ] += 1
+
+            label = (
+                f"UNKNOWN "
+                f"{similarity:.2f}"
+            )
+
+            faces_for_display.append({
+
+                "box": face["box"],
+
+                "label": label,
+
+                "color":
+                    image_utils.COLOR_UNKNOWN,
+
+            })
+
+            # ------------------------------------------------
+            # Save genuinely new unknown
+            # ------------------------------------------------
+
+            if _is_new_unknown(
+                face["embedding"]
+            ):
+
+                path = (
+                    image_utils.save_face_crop(
+
+                        frame,
+
+                        face["box"],
+
+                        settings.UNKNOWN_IMG_DIR,
+
+                        "unknown"
+
+                    )
+                )
+
+                if path is not None:
+
+                    db_manager.log_unknown(
+
+                        path,
+
+                        face["embedding"],
+
+                        camera_location
+
+                    )
+
+                    log.warning(
+
+                        "UNKNOWN person registered "
+                        "@ %s -> %s",
+
+                        camera_location,
+
+                        path
+
+                    )
+
+    return (
+        summary,
+        persons,
+        faces_for_display
+    )
+
+
+# ============================================================================
+# SURVEILLANCE
+# ============================================================================
+
+def run_surveillance(
+    source=None,
+    camera_location=None,
+    display=None,
+    max_frames=None
+):
+
+    # ========================================================
+    # SETUP
+    # ========================================================
+
+    settings.ensure_directories()
+
+    db_manager.init_db()
+
+    source = (
+        settings.DEFAULT_SOURCE
+        if source is None
+        else source
+    )
+
+    camera_location = (
+
+        camera_location
+
+        or
+        settings.DEFAULT_CAMERA_LOCATION
+
+    )
+
+    display = (
+
+        settings.DISPLAY_WINDOW
+
+        if display is None
+
+        else display
+
+    )
+
+    # ========================================================
+    # MODEL INITIALIZATION
+    # ========================================================
+
+    log.info(
+        "Initializing YOLO..."
+    )
+
+    person_detector.init_detector()
+
+    log.info(
+        "Initializing InsightFace..."
+    )
+
+    face_recognizer.init_face_model()
+
+    refresh_gallery(
+        force=True
+    )
+
+    # ========================================================
+    # CAMERA
+    # ========================================================
+
+    try:
+
+        stream = (
+            webcam_stream.VideoStream(
+                source
+            )
+        )
+
+    except Exception as exc:
+
+        log.error(
+            "Could not open stream: %s",
+            exc
+        )
+
+        return
+
+    log.info(
+        "================================================"
+    )
+
+    log.info(
+        "Surveillance started"
+    )
+
+    log.info(
+        "Source: %r",
+        source
+    )
+
+    log.info(
+        "Location: %s",
+        camera_location
+    )
+
+    log.info(
+        "AI device: %s",
+        settings.AI_DEVICE
+    )
+
+    log.info(
+        "Frame processing interval: every %d frame(s)",
+        settings.FRAME_PROCESS_EVERY_N
+    )
+
+    log.info(
+        "Live frame output: %.1f FPS",
+        LIVE_FRAME_FPS
+    )
+
+    log.info(
+        "================================================"
+    )
+
+    # ========================================================
+    # COUNTERS
+    # ========================================================
+
+    frame_idx = 0
+
+    processed_frames = 0
+
+    failures = 0
+
+    # ========================================================
+    # FPS TRACKING
+    # ========================================================
+
+    fps_start_time = time.time()
+
+    fps_frame_count = 0
+
+    camera_fps = 0.0
+
+    # ========================================================
+    # LIVE JPEG TIMING
+    # ========================================================
+
+    last_live_write = 0.0
+
+    live_interval = (
+        1.0
+        / max(
+            LIVE_FRAME_FPS,
+            1.0
+        )
+    )
+
+    # ========================================================
+    # LAST AI RESULTS
+    #
+    # These are intentionally kept between AI inference
+    # frames. This prevents the bounding boxes from
+    # disappearing every other frame.
+    # ========================================================
+
+    last_persons = []
+
+    last_faces = []
+
+    last_summary = {
+
+        "persons": 0,
+
+        "recognized": 0,
+
+        "unknown": 0,
+    }
+
+    # ========================================================
+    # MAIN LOOP
+    # ========================================================
+
+    try:
+
         while True:
-            ok, frame = webcam_stream.read_frame(cap)
+
+            # =================================================
+            # GET LATEST CAMERA FRAME
+            # =================================================
+
+            ok, frame = (
+                stream.read()
+            )
+
             if not ok:
+
                 failures += 1
-                if failures >= 30:          # ~stream ended / network dead
-                    log.error("Stream ended or unreachable — stopping.")
+
+                if failures >= 30:
+
+                    log.error(
+                        "Camera stream unavailable."
+                    )
+
                     break
-                time.sleep(0.1)
+
+                time.sleep(
+                    0.005
+                )
+
                 continue
+
             failures = 0
+
             frame_idx += 1
 
-            # Frame skipping for real-time throughput
-            if frame_idx % settings.FRAME_PROCESS_EVERY_N != 0:
-                continue
+            # =================================================
+            # CAMERA FPS
+            # =================================================
 
-            process_frame(frame, camera_location)
-            processed += 1
+            fps_frame_count += 1
 
-            # FPS measurement (processing rate)
-            fps_count += 1
-            if time.time() - fps_time >= 1.0:
-                fps = fps_count / (time.time() - fps_time)
-                fps_time, fps_count = time.time(), 0
+            fps_elapsed = (
+                time.time()
+                - fps_start_time
+            )
+
+            if fps_elapsed >= 1.0:
+
+                camera_fps = (
+                    fps_frame_count
+                    / fps_elapsed
+                )
+
+                fps_frame_count = 0
+
+                fps_start_time = (
+                    time.time()
+                )
+
+            # =================================================
+            # AI PROCESSING
+            # =================================================
+
+            should_process = (
+
+                frame_idx
+                % settings.FRAME_PROCESS_EVERY_N
+                == 0
+
+            )
+
+            if should_process:
+
+                try:
+
+                    (
+                        last_summary,
+                        last_persons,
+                        last_faces
+                    ) = process_frame(
+
+                        frame,
+
+                        camera_location
+
+                    )
+
+                    processed_frames += 1
+
+                except Exception as exc:
+
+                    log.exception(
+                        "AI frame processing failed: %s",
+                        exc
+                    )
+
+            # =================================================
+            # DRAW THE LATEST AI RESULTS
+            #
+            # IMPORTANT:
+            # These results are drawn onto EVERY camera frame.
+            #
+            # Therefore:
+            #
+            # frame 1 → old detections
+            # frame 2 → new detections
+            # frame 3 → same new detections
+            # frame 4 → new detections
+            #
+            # Instead of:
+            #
+            # frame 1 → boxes
+            # frame 2 → no boxes
+            # frame 3 → boxes
+            # =================================================
+
+            _draw_person_detections(
+
+                frame,
+
+                last_persons
+
+            )
+
+            _draw_face_detections(
+
+                frame,
+
+                last_faces
+
+            )
+
+            # =================================================
+            # HEADER
+            # =================================================
 
             image_utils.draw_header(
-                frame, f"{camera_location} | {fps:.1f} FPS | q = quit")
 
-            if settings.SAVE_LATEST_FRAME:
-                cv2.imwrite(settings.LATEST_FRAME_PATH, frame)
+                frame,
+
+                (
+                    f"{camera_location} | "
+                    f"Camera: {camera_fps:.1f} FPS | "
+                    f"Persons: "
+                    f"{last_summary['persons']} | "
+                    f"Known: "
+                    f"{last_summary['recognized']} | "
+                    f"Unknown: "
+                    f"{last_summary['unknown']} | "
+                    f"AI: {settings.AI_DEVICE} | "
+                    f"q = quit"
+                )
+
+            )
+
+            # =================================================
+            # WRITE LIVE FRAME
+            #
+            # Only encode JPEG at the dashboard FPS.
+            # =================================================
+
+            now = time.time()
+
+            if (
+                settings.SAVE_LATEST_FRAME
+                and
+                (
+                    now
+                    - last_live_write
+                )
+                >= live_interval
+            ):
+
+                if _write_latest_frame(
+                    frame
+                ):
+
+                    last_live_write = now
+
+            # =================================================
+            # OPTIONAL LOCAL DISPLAY
+            # =================================================
 
             if display:
-                cv2.imshow("Campus Surveillance", frame)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
+
+                cv2.imshow(
+
+                    "Campus Surveillance",
+
+                    frame
+
+                )
+
+                key = (
+                    cv2.waitKey(1)
+                    & 0xFF
+                )
+
+                if key == ord("q"):
+
+                    log.info(
+                        "Quit requested."
+                    )
+
                     break
 
-            if max_frames is not None and processed >= max_frames:
+            # =================================================
+            # MAX FRAMES
+            # =================================================
+
+            if (
+                max_frames is not None
+                and processed_frames
+                >= max_frames
+            ):
+
                 break
+
     except KeyboardInterrupt:
-        log.info("Interrupted by user.")
+
+        log.info(
+            "Surveillance interrupted."
+        )
+
+    except Exception as exc:
+
+        log.exception(
+            "Surveillance loop failed: %s",
+            exc
+        )
+
     finally:
-        webcam_stream.release_stream(cap)
+
+        # ====================================================
+        # RELEASE CAMERA
+        # ====================================================
+
+        try:
+
+            stream.release()
+
+        except Exception as exc:
+
+            log.warning(
+                "Could not release camera: %s",
+                exc
+            )
+
+        # ====================================================
+        # CLOSE OPENCV
+        # ====================================================
+
         if display:
-            cv2.destroyAllWindows()
-        log.info("Surveillance stopped | frames processed=%d", processed)
+
+            try:
+
+                cv2.destroyAllWindows()
+
+            except Exception:
+
+                pass
+
+        log.info(
+            "================================================"
+        )
+
+        log.info(
+            "Surveillance stopped."
+        )
+
+        log.info(
+            "Camera frames: %d",
+            frame_idx
+        )
+
+        log.info(
+            "AI frames: %d",
+            processed_frames
+        )
+
+        log.info(
+            "================================================"
+        )
