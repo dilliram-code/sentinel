@@ -1,0 +1,35 @@
+2026-08-09 23:13:41 | INFO    | Initializing YOLO...
+2026-08-09 23:13:41 | INFO    | Loading YOLOv8 model: yolov8n.pt
+2026-08-09 23:13:41 | INFO    | YOLO device: mps
+2026-08-09 23:13:41 | INFO    | Initializing InsightFace...
+2026-08-09 23:13:41 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-09 23:13:41 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-09 23:13:48 | INFO    | InsightFace model initialized successfully.
+2026-08-09 23:13:48 | INFO    | Stakeholder gallery loaded: 63 identities
+2026-08-09 23:13:48 | INFO    | Trying webcam index 0...
+2026-08-09 23:13:49 | INFO    | Webcam 0 opened: 1920x1080
+2026-08-09 23:13:49 | INFO    | ================================================
+2026-08-09 23:13:49 | INFO    | Surveillance started
+2026-08-09 23:13:49 | INFO    | Source: 0
+2026-08-09 23:13:49 | INFO    | Location: MBUST Lab
+2026-08-09 23:13:49 | INFO    | AI device: mps
+2026-08-09 23:13:49 | INFO    | Frame processing interval: every 2 frame(s)
+2026-08-09 23:13:49 | INFO    | Live frame output: 12.0 FPS
+2026-08-09 23:13:49 | INFO    | ================================================
+2026-08-09 23:13:59 | INFO    | VISIT | Dilli Ram Chaudhary (Student) @ MBUST Lab sim=0.639
+2026-08-09 23:14:18 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231418_363504.jpg
+2026-08-09 23:14:19 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231419_048726.jpg
+2026-08-09 23:14:20 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231420_595303.jpg
+2026-08-09 23:14:20 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231420_803086.jpg
+2026-08-09 23:14:21 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231421_010879.jpg
+2026-08-09 23:14:21 | INFO    | VISIT | Umesh Shahi (Student) @ MBUST Lab sim=0.500
+2026-08-09 23:14:22 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231422_479444.jpg
+2026-08-09 23:14:22 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231422_971771.jpg
+2026-08-09 23:14:23 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231423_085162.jpg
+2026-08-09 23:14:23 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231423_277112.jpg
+2026-08-09 23:14:27 | INFO    | Quit requested.
+2026-08-09 23:14:27 | INFO    | ================================================
+2026-08-09 23:14:27 | INFO    | Surveillance stopped.
+2026-08-09 23:14:27 | INFO    | Camera frames: 550
+2026-08-09 23:14:27 | INFO    | AI frames: 275
+2026-08-09 23:14:27 | INFO    | ================================================

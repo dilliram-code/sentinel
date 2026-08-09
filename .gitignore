@@ -1,10 +1,10 @@
-# .venv/
-# __pycache__/
-# *.pyc
-# .DS_Store
-# .vscode/
-# .env
-# database/campus.db
-# data/unknown_faces/
-# data/stakeholders/
-# playground/stakeholders/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+.env
+database/campus.db
+data/unknown_faces/
+data/stakeholders/
+playground/stakeholders/ 
