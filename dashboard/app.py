@@ -1675,7 +1675,27 @@ with tab_reports:
         # ====================================================
 
         left, right = st.columns(2)
+        
+        # with left:
+        #     fig_day = px.bar(
+        #     daily_visits,
+        #     x="Date",
+        #     y="Count",
+        #     title="<b>Visits per Day</b>"
+        # )
 
+        # st.plotly_chart(
+        #     fig_day,
+        #     use_container_width=True,
+        #     config=ui_config
+        # )
+
+        # fig_day.update_traces(width=0.4)
+
+        # fig_day.update_layout(
+        #     **layout_config,
+        #     coloraxis_showscale=False
+        # )
         with left:
 
             fig_day = px.bar(

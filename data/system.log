@@ -1,35 +1,389 @@
-2026-08-09 23:13:41 | INFO    | Initializing YOLO...
-2026-08-09 23:13:41 | INFO    | Loading YOLOv8 model: yolov8n.pt
-2026-08-09 23:13:41 | INFO    | YOLO device: mps
-2026-08-09 23:13:41 | INFO    | Initializing InsightFace...
-2026-08-09 23:13:41 | INFO    | Loading InsightFace model pack: buffalo_s
-2026-08-09 23:13:41 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
-2026-08-09 23:13:48 | INFO    | InsightFace model initialized successfully.
-2026-08-09 23:13:48 | INFO    | Stakeholder gallery loaded: 63 identities
-2026-08-09 23:13:48 | INFO    | Trying webcam index 0...
-2026-08-09 23:13:49 | INFO    | Webcam 0 opened: 1920x1080
-2026-08-09 23:13:49 | INFO    | ================================================
-2026-08-09 23:13:49 | INFO    | Surveillance started
-2026-08-09 23:13:49 | INFO    | Source: 0
-2026-08-09 23:13:49 | INFO    | Location: MBUST Lab
-2026-08-09 23:13:49 | INFO    | AI device: mps
-2026-08-09 23:13:49 | INFO    | Frame processing interval: every 2 frame(s)
-2026-08-09 23:13:49 | INFO    | Live frame output: 12.0 FPS
-2026-08-09 23:13:49 | INFO    | ================================================
-2026-08-09 23:13:59 | INFO    | VISIT | Dilli Ram Chaudhary (Student) @ MBUST Lab sim=0.639
-2026-08-09 23:14:18 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231418_363504.jpg
-2026-08-09 23:14:19 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231419_048726.jpg
-2026-08-09 23:14:20 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231420_595303.jpg
-2026-08-09 23:14:20 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231420_803086.jpg
-2026-08-09 23:14:21 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231421_010879.jpg
-2026-08-09 23:14:21 | INFO    | VISIT | Umesh Shahi (Student) @ MBUST Lab sim=0.500
-2026-08-09 23:14:22 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231422_479444.jpg
-2026-08-09 23:14:22 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231422_971771.jpg
-2026-08-09 23:14:23 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231423_085162.jpg
-2026-08-09 23:14:23 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260809_231423_277112.jpg
-2026-08-09 23:14:27 | INFO    | Quit requested.
-2026-08-09 23:14:27 | INFO    | ================================================
-2026-08-09 23:14:27 | INFO    | Surveillance stopped.
-2026-08-09 23:14:27 | INFO    | Camera frames: 550
-2026-08-09 23:14:27 | INFO    | AI frames: 275
-2026-08-09 23:14:27 | INFO    | ================================================
+2026-08-10 12:05:27 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:05:27 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:05:32 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:05:32 | INFO    | Registered stakeholder #1 | Dr. Rajendra Dhoj Joshi (Faculty) uid=0001 from 1 image(s)
+2026-08-10 12:05:32 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:05:32 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:05:36 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:05:36 | INFO    | Registered stakeholder #2 | Dr. Dinesh Raj Bhuju (Faculty) uid=0002 from 1 image(s)
+2026-08-10 12:05:36 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:05:36 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:05:40 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:05:40 | INFO    | Registered stakeholder #3 | Mr. Padma Sunder Joshi (Faculty) uid=0003 from 1 image(s)
+2026-08-10 12:05:40 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:05:40 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:05:44 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:05:44 | INFO    | Registered stakeholder #4 | Dr. Kirti Kusum Joshi (Faculty) uid=0004 from 1 image(s)
+2026-08-10 12:05:44 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:05:44 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:05:48 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:05:48 | INFO    | Registered stakeholder #5 | Dr. Sanjay Nath Khanal (Faculty) uid=0005 from 1 image(s)
+2026-08-10 12:05:48 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:05:48 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:05:52 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:05:52 | INFO    | Registered stakeholder #6 | Dr. Bhushan Shrestha (Faculty) uid=0006 from 1 image(s)
+2026-08-10 12:05:52 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:05:52 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:05:56 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:05:56 | INFO    | Registered stakeholder #7 | Dr. Sarbesh Das Dangol (Faculty) uid=0007 from 1 image(s)
+2026-08-10 12:05:56 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:05:56 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:05:59 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:05:59 | INFO    | Registered stakeholder #8 | Dr. Sujan Dawadi (Faculty) uid=0008 from 1 image(s)
+2026-08-10 12:05:59 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:05:59 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:03 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:03 | INFO    | Registered stakeholder #9 | Dr. Sabina Shrestha (Faculty) uid=0009 from 1 image(s)
+2026-08-10 12:06:03 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:03 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:06 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:06 | INFO    | Registered stakeholder #10 | Dr. Sudip Pandey (Faculty) uid=0010 from 1 image(s)
+2026-08-10 12:06:06 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:06 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:10 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:10 | INFO    | Registered stakeholder #11 | Dr. Saurabha Bhattarai (Faculty) uid=0011 from 1 image(s)
+2026-08-10 12:06:10 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:10 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:14 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:14 | INFO    | Registered stakeholder #12 | Dr. Jhasanath Adhikari (Faculty) uid=0012 from 1 image(s)
+2026-08-10 12:06:14 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:14 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:17 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:17 | INFO    | Registered stakeholder #13 | Dr. Kishor Timsina (Faculty) uid=0013 from 1 image(s)
+2026-08-10 12:06:17 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:17 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:21 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:21 | INFO    | Registered stakeholder #14 | Dr. Rituraj Lamsal (Faculty) uid=0014 from 1 image(s)
+2026-08-10 12:06:21 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:21 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:25 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:25 | INFO    | Registered stakeholder #15 | Dr. Punit Bhattachan (Faculty) uid=0015 from 1 image(s)
+2026-08-10 12:06:25 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:25 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:29 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:29 | INFO    | Registered stakeholder #16 | Dr. Sandhya Sharma (Faculty) uid=0016 from 1 image(s)
+2026-08-10 12:06:29 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:29 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:32 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:33 | INFO    | Registered stakeholder #17 | Dr. Anupama Shrestha (Faculty) uid=0017 from 1 image(s)
+2026-08-10 12:06:33 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:33 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:36 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:36 | INFO    | Registered stakeholder #18 | Dr. Rameshwar Rai (Faculty) uid=0018 from 1 image(s)
+2026-08-10 12:06:36 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:36 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:40 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:40 | INFO    | Registered stakeholder #19 | Mr. Rabi Manandhar Sayami (Staff) uid=0019 from 1 image(s)
+2026-08-10 12:06:40 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:40 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:44 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:44 | INFO    | Registered stakeholder #20 | Mr. Shambhu Adhikari (Staff) uid=0020 from 1 image(s)
+2026-08-10 12:06:44 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:44 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:48 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:48 | INFO    | Registered stakeholder #21 | Ms. Mira Maharjan (Staff) uid=0021 from 1 image(s)
+2026-08-10 12:06:48 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:48 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:52 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:52 | INFO    | Registered stakeholder #22 | Mr. Abhishek Shrestha (Staff) uid=0022 from 1 image(s)
+2026-08-10 12:06:52 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:52 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:56 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:56 | INFO    | Registered stakeholder #23 | Mr. Binod Adhikari (Staff) uid=0023 from 1 image(s)
+2026-08-10 12:06:56 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:56 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:06:59 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:06:59 | INFO    | Registered stakeholder #24 | Mr. Abhash Jit Maharjan (Staff) uid=0024 from 1 image(s)
+2026-08-10 12:06:59 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:06:59 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:03 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:03 | INFO    | Registered stakeholder #25 | Mr. Sabin Birbal (Staff) uid=0025 from 1 image(s)
+2026-08-10 12:07:03 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:03 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:06 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:06 | INFO    | Registered stakeholder #26 | Ms. Rabina Shrestha (Staff) uid=0026 from 1 image(s)
+2026-08-10 12:07:06 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:06 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:10 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:10 | INFO    | Registered stakeholder #27 | Mr. Laxman Khadka (Staff) uid=0027 from 1 image(s)
+2026-08-10 12:07:10 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:10 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:13 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:13 | INFO    | Registered stakeholder #28 | Ms. Asmita Rai (Staff) uid=0028 from 1 image(s)
+2026-08-10 12:07:13 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:13 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:17 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:17 | INFO    | Registered stakeholder #29 | Mr. Oshan Nepali (Staff) uid=0029 from 1 image(s)
+2026-08-10 12:07:17 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:17 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:20 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:20 | INFO    | Registered stakeholder #30 | Mr. Pradeep Jimba (Staff) uid=0030 from 1 image(s)
+2026-08-10 12:07:20 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:20 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:24 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:24 | INFO    | Registered stakeholder #31 | Ms. Sabita Balami (Staff) uid=0031 from 1 image(s)
+2026-08-10 12:07:24 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:24 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:27 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:27 | INFO    | Registered stakeholder #32 | Ms. Asha Gamal (Staff) uid=0032 from 1 image(s)
+2026-08-10 12:07:27 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:27 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:31 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:31 | INFO    | Registered stakeholder #33 | Prof. Seeram Ramakrishna (Faculty) uid=0033 from 1 image(s)
+2026-08-10 12:07:31 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:31 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:34 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:34 | INFO    | Registered stakeholder #34 | Prof. Bikash Nakarmi (Faculty) uid=0034 from 1 image(s)
+2026-08-10 12:07:34 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:34 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:38 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:38 | INFO    | Registered stakeholder #35 | Prof. Homnath Dhakal (Faculty) uid=0035 from 1 image(s)
+2026-08-10 12:07:38 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:38 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:42 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:42 | INFO    | Registered stakeholder #36 | Prof. Ning Yan (Faculty) uid=0036 from 1 image(s)
+2026-08-10 12:07:42 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:42 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:45 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:45 | INFO    | Registered stakeholder #37 | Prof. Suresh Manandhar (Faculty) uid=0037 from 1 image(s)
+2026-08-10 12:07:45 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:45 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:49 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:49 | INFO    | Registered stakeholder #38 | Padma Jyoti (Staff) uid=0038 from 1 image(s)
+2026-08-10 12:07:49 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:49 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:52 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:52 | INFO    | Registered stakeholder #39 | Birendra Raj Pandey (Staff) uid=0039 from 1 image(s)
+2026-08-10 12:07:52 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:52 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:55 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:56 | INFO    | Registered stakeholder #40 | Choodamani Poudel (Staff) uid=0040 from 1 image(s)
+2026-08-10 12:07:56 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:56 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:07:59 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:07:59 | INFO    | Registered stakeholder #41 | Ghanashyam Upadhyaya (Staff) uid=0041 from 1 image(s)
+2026-08-10 12:07:59 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:07:59 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:03 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:03 | INFO    | Registered stakeholder #42 | Gyan Bahadur Thapa (Staff) uid=0042 from 1 image(s)
+2026-08-10 12:08:03 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:03 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:06 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:06 | INFO    | Registered stakeholder #43 | Lochan Gyawali (Staff) uid=0043 from 1 image(s)
+2026-08-10 12:08:06 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:06 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:10 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:10 | INFO    | Registered stakeholder #44 | Nam Pyo Suh (Staff) uid=0044 from 1 image(s)
+2026-08-10 12:08:10 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:10 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:13 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:13 | INFO    | Registered stakeholder #45 | Prashant Upreti (Staff) uid=0045 from 1 image(s)
+2026-08-10 12:08:13 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:13 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:16 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:16 | INFO    | Registered stakeholder #46 | Pushkar Bajracharya (Staff) uid=0046 from 1 image(s)
+2026-08-10 12:08:16 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:16 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:20 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:20 | INFO    | Registered stakeholder #47 | Sangeeta Singh (Staff) uid=0047 from 1 image(s)
+2026-08-10 12:08:20 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:20 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:23 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:23 | INFO    | Registered stakeholder #48 | Seeram Ramakrishna (Staff) uid=0048 from 1 image(s)
+2026-08-10 12:08:23 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:23 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:26 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:26 | INFO    | Registered stakeholder #49 | Shankar Man Shrestha (Staff) uid=0049 from 1 image(s)
+2026-08-10 12:08:26 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:26 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:30 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:30 | INFO    | Registered stakeholder #50 | Sudharshan Raj Tiwari (Staff) uid=0050 from 1 image(s)
+2026-08-10 12:08:30 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:30 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:34 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:34 | INFO    | Registered stakeholder #51 | Suzanne Fortier (Staff) uid=0051 from 1 image(s)
+2026-08-10 12:08:34 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:34 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:38 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:38 | INFO    | Registered stakeholder #52 | Dilli Ram Chaudhary (Student) uid=0052 from 1 image(s)
+2026-08-10 12:08:38 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:38 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:41 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:41 | INFO    | Registered stakeholder #53 | Yalamber Ingnam (Student) uid=0053 from 1 image(s)
+2026-08-10 12:08:41 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:41 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:45 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:45 | INFO    | Registered stakeholder #54 | Piyush Lal Shrestha (Student) uid=0054 from 1 image(s)
+2026-08-10 12:08:45 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:45 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:49 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:49 | INFO    | Registered stakeholder #55 | Nawaraj Luitel (Student) uid=0055 from 1 image(s)
+2026-08-10 12:08:49 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:49 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:53 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:53 | INFO    | Registered stakeholder #56 | Sudin Upadhaya (Student) uid=0056 from 1 image(s)
+2026-08-10 12:08:53 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:53 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:08:56 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:08:56 | INFO    | Registered stakeholder #57 | Sushant Adhikari (Student) uid=0057 from 1 image(s)
+2026-08-10 12:08:56 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:08:56 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:09:00 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:09:00 | INFO    | Registered stakeholder #58 | Umesh Shahi (Student) uid=0058 from 1 image(s)
+2026-08-10 12:09:00 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:09:00 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:09:04 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:09:04 | INFO    | Registered stakeholder #59 | Birat Dev Poudel (Student) uid=0059 from 1 image(s)
+2026-08-10 12:09:04 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:09:04 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:09:07 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:09:07 | INFO    | Registered stakeholder #60 | Binay Basenet (Student) uid=0060 from 1 image(s)
+2026-08-10 12:09:07 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:09:07 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:09:11 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:09:11 | INFO    | Registered stakeholder #61 | Sandesh Dhungana (Student) uid=0061 from 1 image(s)
+2026-08-10 12:09:11 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:09:11 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:09:14 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:09:14 | INFO    | Registered stakeholder #62 | Hasil Silwal (Student) uid=0062 from 1 image(s)
+2026-08-10 12:09:14 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:09:14 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:09:18 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:09:18 | INFO    | Registered stakeholder #63 | Nisha Bhatt (Student) uid=0063 from 1 image(s)
+2026-08-10 12:09:18 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 12:09:18 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 12:09:22 | INFO    | InsightFace model initialized successfully.
+2026-08-10 12:09:22 | INFO    | Registered stakeholder #64 | Jayaram  Gautam (Student) uid=0064 from 1 image(s)
+2026-08-10 13:36:28 | INFO    | Initializing YOLO...
+2026-08-10 13:36:28 | INFO    | Loading YOLOv8 model: yolov8n.pt
+2026-08-10 13:36:28 | INFO    | YOLO device: mps
+2026-08-10 13:36:28 | INFO    | Initializing InsightFace...
+2026-08-10 13:36:28 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-08-10 13:36:28 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
+2026-08-10 13:36:35 | INFO    | InsightFace model initialized successfully.
+2026-08-10 13:36:35 | INFO    | Stakeholder gallery loaded: 64 identities
+2026-08-10 13:36:35 | INFO    | Trying webcam index 0...
+2026-08-10 13:36:39 | INFO    | Webcam 0 opened: 1920x1080
+2026-08-10 13:36:39 | INFO    | ================================================
+2026-08-10 13:36:39 | INFO    | Surveillance started
+2026-08-10 13:36:39 | INFO    | Source: 0
+2026-08-10 13:36:39 | INFO    | Location: MBUST Lab
+2026-08-10 13:36:39 | INFO    | AI device: mps
+2026-08-10 13:36:39 | INFO    | Frame processing interval: every 2 frame(s)
+2026-08-10 13:36:39 | INFO    | Live frame output: 12.0 FPS
+2026-08-10 13:36:39 | INFO    | ================================================
+2026-08-10 13:36:44 | INFO    | VISIT | Dilli Ram Chaudhary (Student) @ MBUST Lab sim=0.719
+2026-08-10 13:36:44 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133644_933591.jpg
+2026-08-10 13:36:45 | INFO    | VISIT | Yalamber Ingnam (Student) @ MBUST Lab sim=0.469
+2026-08-10 13:36:47 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133647_594747.jpg
+2026-08-10 13:36:47 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133647_696754.jpg
+2026-08-10 13:36:49 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133649_454023.jpg
+2026-08-10 13:36:50 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133650_991143.jpg
+2026-08-10 13:36:51 | INFO    | VISIT | Nisha Bhatt (Student) @ MBUST Lab sim=0.509
+2026-08-10 13:36:54 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133654_988091.jpg
+2026-08-10 13:36:55 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133655_656847.jpg
+2026-08-10 13:36:55 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133655_753390.jpg
+2026-08-10 13:36:56 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133656_391253.jpg
+2026-08-10 13:36:56 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133656_593209.jpg
+2026-08-10 13:36:56 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133656_706001.jpg
+2026-08-10 13:36:56 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133656_708096.jpg
+2026-08-10 13:36:56 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133656_826228.jpg
+2026-08-10 13:36:56 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133656_828245.jpg
+2026-08-10 13:36:56 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133656_941948.jpg
+2026-08-10 13:36:57 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133657_175218.jpg
+2026-08-10 13:36:57 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133657_296397.jpg
+2026-08-10 13:36:57 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133657_298509.jpg
+2026-08-10 13:36:57 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133657_511867.jpg
+2026-08-10 13:36:58 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133658_089586.jpg
+2026-08-10 13:36:58 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133658_091716.jpg
+2026-08-10 13:36:58 | INFO    | VISIT | Binay Basenet (Student) @ MBUST Lab sim=0.494
+2026-08-10 13:36:58 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133658_328593.jpg
+2026-08-10 13:36:58 | INFO    | VISIT | Hasil Silwal (Student) @ MBUST Lab sim=0.547
+2026-08-10 13:36:58 | INFO    | VISIT | Sandesh Dhungana (Student) @ MBUST Lab sim=0.476
+2026-08-10 13:37:01 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133701_909606.jpg
+2026-08-10 13:37:07 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133707_569659.jpg
+2026-08-10 13:37:09 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133709_113011.jpg
+2026-08-10 13:37:12 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133712_513716.jpg
+2026-08-10 13:37:12 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133712_634235.jpg
+2026-08-10 13:37:12 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133712_636341.jpg
+2026-08-10 13:37:12 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133712_751220.jpg
+2026-08-10 13:37:12 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133712_861277.jpg
+2026-08-10 13:37:13 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133713_381137.jpg
+2026-08-10 13:37:13 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133713_812935.jpg
+2026-08-10 13:37:14 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133714_006394.jpg
+2026-08-10 13:37:14 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133714_915952.jpg
+2026-08-10 13:37:20 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133720_278872.jpg
+2026-08-10 13:37:20 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133720_379029.jpg
+2026-08-10 13:37:20 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133720_477897.jpg
+2026-08-10 13:37:21 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133721_449885.jpg
+2026-08-10 13:37:21 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133721_744432.jpg
+2026-08-10 13:37:23 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133723_720652.jpg
+2026-08-10 13:37:27 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133727_122580.jpg
+2026-08-10 13:37:27 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133727_125056.jpg
+2026-08-10 13:37:27 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133727_416699.jpg
+2026-08-10 13:37:27 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133727_623236.jpg
+2026-08-10 13:37:27 | INFO    | VISIT | Dr. Punit Bhattachan (Faculty) @ MBUST Lab sim=0.471
+2026-08-10 13:37:27 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133727_958091.jpg
+2026-08-10 13:37:28 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133728_205085.jpg
+2026-08-10 13:37:28 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133728_514631.jpg
+2026-08-10 13:37:29 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133729_921284.jpg
+2026-08-10 13:37:30 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133730_325063.jpg
+2026-08-10 13:37:31 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133731_215473.jpg
+2026-08-10 13:37:31 | INFO    | VISIT | Nawaraj Luitel (Student) @ MBUST Lab sim=0.496
+2026-08-10 13:37:32 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133732_997085.jpg
+2026-08-10 13:37:35 | INFO    | Stakeholder gallery loaded: 64 identities
+2026-08-10 13:37:35 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133735_692395.jpg
+2026-08-10 13:37:35 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133735_814110.jpg
+2026-08-10 13:37:35 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133735_816652.jpg
+2026-08-10 13:37:36 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133736_325658.jpg
+2026-08-10 13:37:36 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133736_726481.jpg
+2026-08-10 13:37:36 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133736_728677.jpg
+2026-08-10 13:37:37 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133737_114225.jpg
+2026-08-10 13:37:37 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133737_313214.jpg
+2026-08-10 13:37:43 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133743_190538.jpg
+2026-08-10 13:37:44 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133744_591337.jpg
+2026-08-10 13:37:45 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133745_291609.jpg
+2026-08-10 13:37:45 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133745_397435.jpg
+2026-08-10 13:37:45 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133745_603609.jpg
+2026-08-10 13:37:45 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133745_719287.jpg
+2026-08-10 13:37:45 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133745_721581.jpg
+2026-08-10 13:37:45 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133745_944810.jpg
+2026-08-10 13:37:46 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133746_064322.jpg
+2026-08-10 13:37:46 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133746_257429.jpg
+2026-08-10 13:37:47 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133747_156676.jpg
+2026-08-10 13:37:47 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133747_350467.jpg
+2026-08-10 13:37:47 | INFO    | VISIT | Sudin Upadhaya (Student) @ MBUST Lab sim=0.512
+2026-08-10 13:37:47 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133747_556975.jpg
+2026-08-10 13:37:47 | INFO    | VISIT | Sushant Adhikari (Student) @ MBUST Lab sim=0.458
+2026-08-10 13:37:48 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133748_267089.jpg
+2026-08-10 13:37:48 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133748_597490.jpg
+2026-08-10 13:37:48 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133748_703274.jpg
+2026-08-10 13:37:48 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133748_817764.jpg
+2026-08-10 13:37:50 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133750_628822.jpg
+2026-08-10 13:37:52 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133752_136259.jpg
+2026-08-10 13:37:52 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133752_665404.jpg
+2026-08-10 13:37:52 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133752_867398.jpg
+2026-08-10 13:37:53 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133753_963178.jpg
+2026-08-10 13:37:54 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133754_062005.jpg
+2026-08-10 13:37:57 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133757_064923.jpg
+2026-08-10 13:37:59 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133759_796768.jpg
+2026-08-10 13:38:01 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133801_507024.jpg
+2026-08-10 13:38:02 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133802_042709.jpg
+2026-08-10 13:38:04 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133804_432776.jpg
+2026-08-10 13:38:04 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133804_533786.jpg
+2026-08-10 13:38:04 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133804_970447.jpg
+2026-08-10 13:38:05 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133805_423198.jpg
+2026-08-10 13:38:06 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133806_631876.jpg
+2026-08-10 13:38:06 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133806_897955.jpg
+2026-08-10 13:38:06 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133806_997222.jpg
+2026-08-10 13:38:09 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133809_744963.jpg
+2026-08-10 13:38:10 | INFO    | VISIT | Dilli Ram Chaudhary (Student) @ MBUST Lab sim=0.462
+2026-08-10 13:38:11 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133811_595464.jpg
+2026-08-10 13:38:11 | WARNING | UNKNOWN person registered @ MBUST Lab -> /Users/dilliramchaudhary/sentinel/data/unknown_faces/unknown_20260810_133811_699028.jpg
+2026-08-10 13:38:12 | INFO    | VISIT | Yalamber Ingnam (Student) @ MBUST Lab sim=0.492
+2026-08-10 13:38:13 | INFO    | Quit requested.
+2026-08-10 13:38:13 | INFO    | ================================================
+2026-08-10 13:38:13 | INFO    | Surveillance stopped.
+2026-08-10 13:38:13 | INFO    | Camera frames: 1829
+2026-08-10 13:38:13 | INFO    | AI frames: 914
+2026-08-10 13:38:13 | INFO    | ================================================

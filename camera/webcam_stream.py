@@ -1,12 +1,5 @@
 """
 camera/webcam_stream.py
-
-Low-latency camera capture for:
-    - MacBook webcam
-    - USB webcam
-    - RTSP CCTV
-    - HTTP streams
-    - Video files
 """
 
 import time
