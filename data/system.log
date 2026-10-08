@@ -662,3 +662,7 @@
 2026-09-24 11:43:17 | INFO    | Camera frames: 164
 2026-09-24 11:43:17 | INFO    | AI frames: 82
 2026-09-24 11:43:17 | INFO    | ================================================
+2026-10-08 19:51:35 | INFO    | Loading YOLOv8 model: yolov8n.pt
+2026-10-08 19:51:35 | INFO    | YOLO device: mps
+2026-10-08 19:51:35 | INFO    | Loading InsightFace model pack: buffalo_s
+2026-10-08 19:51:35 | INFO    | InsightFace providers: ['CoreMLExecutionProvider', 'CPUExecutionProvider']
