@@ -205,12 +205,12 @@ def fetch_visits(limit=500, offset=0, name_filter=None, role_filter=None):
     """
     params = []
     conditions = []
-    if name_filter:
+    if name_filter and isinstance(name_filter, str) and name_filter.strip():
         conditions.append("(s.name LIKE ? OR s.stakeholder_uid LIKE ?)")
-        params.extend([f"%{name_filter}%", f"%{name_filter}%"])
-    if role_filter:
+        params.extend([f"%{name_filter.strip()}%", f"%{name_filter.strip()}%"])
+    if role_filter and isinstance(role_filter, str) and role_filter.strip():
         conditions.append("s.role = ?")
-        params.append(role_filter)
+        params.append(role_filter.strip())
 
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
