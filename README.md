@@ -1,41 +1,29 @@
-#  Real-Time Campus Stakeholder Identification and Unknown Person Registration
-
-An AI-powered intelligent campus surveillance system that performs **real-time person detection**, **stakeholder identification**, and **unknown person registration** using **YOLOv8**, **InsightFace**, **OpenCV**, **SQLite**, and **Streamlit**.
+An AI-powered intelligent campus surveillance system that performs **real-time person detection**, **stakeholder identification**, and **unknown person registration** using **YOLOv8**, **InsightFace**, **OpenCV**, **SQLite**, and a **Modern WebSocket-driven Dashboard**.
 
 ---
 
-##  Project Overview
+## 🚀 Quick Start Instructions
 
-Traditional CCTV systems rely on continuous manual monitoring, making it difficult to efficiently identify campus stakeholders and monitor unauthorized individuals. This project aims to automate the surveillance process by leveraging state-of-the-art computer vision and deep learning models.
+1. **Check Environment:**
+   ```bash
+   python main.py check
+   ```
 
-The system detects people from live CCTV feeds, recognizes registered stakeholders through face recognition, and automatically records unknown individuals for future verification. A Streamlit dashboard provides real-time monitoring, analytics, and search capabilities.
+2. **Launch the Modern Web Dashboard (Recommended):**
+   ```bash
+   python main.py web
+   ```
+   👉 Open **http://localhost:8000** in your browser for real-time WebSocket video streaming, live visitor notifications, stakeholder management, and analytics.
 
----
+3. **Or Run Surveillance in Terminal Mode:**
+   ```bash
+   python main.py run --location "MBUST Lab"
+   ```
 
-##  Features
-
-* Real-time CCTV/Webcam monitoring
-* Person detection using YOLOv8
-* Face detection and embedding extraction using InsightFace
-* Stakeholder identification using cosine similarity
-* Automatic visit logging
-* Unknown person registration
-* SQLite database for centralized data management
-* Interactive Streamlit dashboard
-* Visit analytics and reports
-* Search stakeholder history
-
----
-
-# Instructions to run the project:
-
--  1. check registration(preview, without touching anything): `python registration/bulk_register.py --sheet stakeholders.xlsx --photos-dir stakeholder --dry-run`
-
--  2. register for real: `python registration/bulk_register.py --sheet stakeholders.xlsx --photos-dir stakeholder`
-
--  3. start survellience: `python main.py run --location "MBUST Lab"`
-
--  4. start the dashboard: `streamlit run dashboard/app.py`
+4. **Bulk Register from Excel/CSV:**
+   ```bash
+   python registration/bulk_register.py --sheet stakeholders.xlsx --photos-dir stakeholder
+   ```
 
 
 ## 📁 Project structure
