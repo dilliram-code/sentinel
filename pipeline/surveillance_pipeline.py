@@ -4,9 +4,10 @@ pipeline/surveillance_pipeline.py
 Real-time AI surveillance pipeline optimized for Apple Silicon (MPS / CoreML) and CUDA/CPU.
 
 Key Capabilities:
+    - Decoupled asynchronous architecture for buttery smooth 30+ FPS video streaming
     - YOLOv8 person detection with hardware acceleration
     - InsightFace ArcFace face extraction and cosine similarity recognition
-    - Atomic latest-frame writer to prevent tearing
+    - Non-blocking latest-frame file writer to prevent tearing
     - WebSocket callback support for ultra-low latency live rendering
     - Database-backed unknown person deduplication across restarts
     - Robust visit logging with configurable cooldowns
@@ -15,6 +16,7 @@ Key Capabilities:
 
 import os
 import time
+import threading
 import cv2
 import numpy as np
 
@@ -29,7 +31,7 @@ from utils.logger import get_logger
 log = get_logger()
 
 # ---------------------------------------------------------------------------
-# Global Pipeline State
+# Global Pipeline State & Gallery Cache
 # ---------------------------------------------------------------------------
 
 _gallery = {
@@ -44,8 +46,8 @@ _last_visit_log = {}
 _recent_unknowns = []
 
 GALLERY_REFRESH_SEC = 30
-LIVE_FRAME_FPS = getattr(settings, "LIVE_FRAME_FPS", 15)
-LIVE_JPEG_QUALITY = getattr(settings, "LIVE_JPEG_QUALITY", 85)
+LIVE_FRAME_FPS = getattr(settings, "LIVE_FRAME_FPS", 30)
+LIVE_JPEG_QUALITY = getattr(settings, "LIVE_JPEG_QUALITY", 80)
 
 
 def refresh_gallery(force=False):
@@ -111,12 +113,12 @@ def _is_new_unknown(embedding):
 
 
 def _write_latest_frame(frame):
-    """Atomically write latest annotated frame JPEG to disk without file locking / tearing."""
+    """Safely write latest annotated frame JPEG to disk without file locking / tearing."""
     if not settings.SAVE_LATEST_FRAME:
         return False
 
     final_path = settings.LATEST_FRAME_PATH
-    temp_path = final_path + ".tmp.jpg"
+    temp_path = f"{final_path}.{os.getpid()}_{threading.get_ident()}.tmp.jpg"
 
     try:
         os.makedirs(os.path.dirname(final_path), exist_ok=True)
@@ -125,12 +127,11 @@ def _write_latest_frame(frame):
             frame,
             [cv2.IMWRITE_JPEG_QUALITY, int(LIVE_JPEG_QUALITY)]
         )
-        if success:
+        if success and os.path.exists(temp_path):
             os.replace(temp_path, final_path)
             return True
         return False
     except Exception as exc:
-        log.warning("Atomic frame write failed: %s", exc)
         try:
             if os.path.exists(temp_path):
                 os.remove(temp_path)
@@ -224,6 +225,116 @@ def process_frame(frame, camera_location):
     return summary, persons, faces_for_display, events
 
 
+# ---------------------------------------------------------------------------
+# Asynchronous Decoupled AI Processor
+# ---------------------------------------------------------------------------
+
+class AsyncAIProcessor:
+    """
+    Dedicated background worker thread for AI inference (YOLO + InsightFace).
+    Prevents deep learning inference from blocking camera frame acquisition,
+    allowing the video stream to render at full native 30+ FPS.
+    """
+
+    def __init__(self, camera_location):
+        self.camera_location = camera_location
+        self.pending_frame = None
+        self.frame_lock = threading.Lock()
+        self.new_frame_event = threading.Event()
+        self.results_lock = threading.Lock()
+        self.running = True
+
+        self.last_persons = []
+        self.last_faces = []
+        self.last_summary = {"persons": 0, "recognized": 0, "unknown": 0}
+        self.last_events = []
+        self.ai_fps = 0.0
+        self.ai_inference_time_ms = 0.0
+        self.total_inferences = 0
+
+        self.thread = threading.Thread(target=self._worker_loop, daemon=True, name="AsyncAIWorker")
+        self.thread.start()
+
+    def submit_frame(self, frame):
+        """Submit a frame for AI processing without blocking the streaming loop."""
+        with self.frame_lock:
+            self.pending_frame = frame.copy()
+            self.new_frame_event.set()
+
+    def get_latest_results(self):
+        """Retrieve the freshest inference results instantaneously (<0.01ms)."""
+        with self.results_lock:
+            events = self.last_events
+            self.last_events = []  # Clear consumed events
+            return (
+                self.last_summary.copy(),
+                list(self.last_persons),
+                list(self.last_faces),
+                events,
+                self.ai_fps,
+                self.ai_inference_time_ms,
+                self.total_inferences
+            )
+
+    def _worker_loop(self):
+        fps_start = time.time()
+        fps_count = 0
+
+        while self.running:
+            self.new_frame_event.wait(timeout=0.05)
+            if not self.running:
+                break
+            if not self.new_frame_event.is_set():
+                continue
+
+            frame_to_process = None
+            with self.frame_lock:
+                frame_to_process = self.pending_frame
+                self.pending_frame = None
+                self.new_frame_event.clear()
+
+            if frame_to_process is None:
+                continue
+
+            t0 = time.perf_counter()
+            try:
+                summary, persons, faces, events = process_frame(
+                    frame_to_process, self.camera_location
+                )
+                dt_ms = (time.perf_counter() - t0) * 1000.0
+                fps_count += 1
+                self.total_inferences += 1
+
+                elapsed = time.time() - fps_start
+                ai_fps = self.ai_fps
+                if elapsed >= 1.0:
+                    ai_fps = fps_count / elapsed
+                    fps_count = 0
+                    fps_start = time.time()
+
+                with self.results_lock:
+                    self.last_summary = summary
+                    self.last_persons = persons
+                    self.last_faces = faces
+                    if events:
+                        self.last_events.extend(events)
+                    self.ai_fps = ai_fps
+                    self.ai_inference_time_ms = dt_ms
+
+            except Exception as exc:
+                log.exception("Async AI inference error: %s", exc)
+
+    def stop(self):
+        self.running = False
+        self.new_frame_event.set()
+        if self.thread.is_alive():
+            self.thread.join(timeout=1.0)
+
+
+# ---------------------------------------------------------------------------
+# Main Surveillance Runner
+# ---------------------------------------------------------------------------
+
 def run_surveillance(
     source=None,
     camera_location=None,
@@ -234,8 +345,9 @@ def run_surveillance(
 ):
     """
     Main surveillance loop.
-    Supports optional `frame_callback(annotated_frame, summary, events)` for direct WebSocket broadcasting.
-    Supports `stop_event` (threading.Event) for clean asynchronous termination.
+    Executes decoupled multi-threading:
+        - Stream capture & rendering runs at native camera rate (30+ FPS)
+        - AI models run asynchronously in background thread
     """
     settings.ensure_directories()
     db_manager.init_db()
@@ -258,8 +370,9 @@ def run_surveillance(
 
     log.info("Surveillance pipeline running. Source: %r, Location: %s", source, camera_location)
 
+    ai_processor = AsyncAIProcessor(camera_location=camera_location)
+
     frame_idx = 0
-    processed_frames = 0
     failures = 0
     fps_start = time.time()
     fps_count = 0
@@ -268,10 +381,6 @@ def run_surveillance(
     last_live_write = 0.0
     live_interval = 1.0 / max(LIVE_FRAME_FPS, 1.0)
 
-    last_persons = []
-    last_faces = []
-    last_summary = {"persons": 0, "recognized": 0, "unknown": 0}
-
     try:
         while True:
             if stop_event is not None and stop_event.is_set():
@@ -279,7 +388,7 @@ def run_surveillance(
                 break
 
             ok, frame = stream.read()
-            if not ok:
+            if not ok or frame is None:
                 failures += 1
                 if failures >= 40:
                     log.error("Video stream unavailable after repeated attempts.")
@@ -291,32 +400,29 @@ def run_surveillance(
             frame_idx += 1
             fps_count += 1
 
-            # Calculate FPS
-            elapsed = time.time() - fps_start
+            # Calculate actual live video streaming FPS
+            now = time.time()
+            elapsed = now - fps_start
             if elapsed >= 1.0:
                 camera_fps = fps_count / elapsed
                 fps_count = 0
-                fps_start = time.time()
+                fps_start = now
 
-            # Run AI periodically according to FRAME_PROCESS_EVERY_N
-            current_events = []
-            if frame_idx % settings.FRAME_PROCESS_EVERY_N == 0:
-                try:
-                    last_summary, last_persons, last_faces, current_events = process_frame(
-                        frame, camera_location
-                    )
-                    processed_frames += 1
-                except Exception as exc:
-                    log.exception("Inference error on frame %d: %s", frame_idx, exc)
+            # Non-blocking dispatch to async AI worker
+            if frame_idx % max(1, settings.FRAME_PROCESS_EVERY_N) == 0:
+                ai_processor.submit_frame(frame)
 
-            # Draw AI overlays onto current frame for consistent rendering
-            for det in last_persons:
+            # Instantaneous fetch of latest AI recognition annotations
+            summary, persons, faces, events, ai_fps, ai_time_ms, total_inf = ai_processor.get_latest_results()
+
+            # Render detection boxes on current frame for smooth overlay
+            for det in persons:
                 box = det.get("box")
                 conf = float(det.get("conf", 0.0))
                 if box:
                     image_utils.draw_box(frame, box, f"person {conf:.2f}", image_utils.COLOR_PERSON)
 
-            for fdet in last_faces:
+            for fdet in faces:
                 box = fdet.get("box")
                 lbl = fdet.get("label", "UNKNOWN")
                 clr = fdet.get("color", image_utils.COLOR_UNKNOWN)
@@ -325,35 +431,34 @@ def run_surveillance(
 
             # Draw HUD status bar
             hud_text = (
-                f"{camera_location} | FPS: {camera_fps:.1f} | "
-                f"Persons: {last_summary['persons']} | "
-                f"Known: {last_summary['recognized']} | "
-                f"Unknown: {last_summary['unknown']} | "
-                f"AI: {settings.AI_DEVICE}"
+                f"{camera_location} | Stream: {camera_fps:.1f} FPS | "
+                f"AI: {ai_fps:.1f} inf/s ({ai_time_ms:.0f}ms) | "
+                f"Persons: {summary['persons']} | "
+                f"Identified: {summary['recognized']} | "
+                f"Unknown: {summary['unknown']}"
             )
             image_utils.draw_header(frame, hud_text)
 
-            # Write atomic live frame to disk
-            now = time.time()
+            # Write latest frame to disk periodically without blocking
             if settings.SAVE_LATEST_FRAME and (now - last_live_write >= live_interval):
                 if _write_latest_frame(frame):
                     last_live_write = now
 
-            # Broadcast frame directly to WebSocket listeners if callback provided
+            # Broadcast frame directly to WebSocket listeners
             if frame_callback is not None:
                 try:
-                    frame_callback(frame, last_summary, current_events, camera_fps)
+                    frame_callback(frame, summary, events, camera_fps)
                 except Exception as cb_exc:
                     log.debug("Frame callback failed: %s", cb_exc)
 
-            # Local OpenCV window if enabled
+            # Local OpenCV preview window if enabled
             if display:
                 cv2.imshow("Campus Surveillance", frame)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     log.info("Quit requested from preview window.")
                     break
 
-            if max_frames is not None and processed_frames >= max_frames:
+            if max_frames is not None and (total_inf >= max_frames or frame_idx >= max_frames * 5):
                 break
 
     except KeyboardInterrupt:
@@ -361,6 +466,8 @@ def run_surveillance(
     except Exception as exc:
         log.exception("Surveillance main loop failure: %s", exc)
     finally:
+        ai_processor.stop()
+
         try:
             stream.release()
         except Exception:
@@ -372,4 +479,4 @@ def run_surveillance(
             except Exception:
                 pass
 
-        log.info("Surveillance stopped. Processed %d AI frames (%d total frames).", processed_frames, frame_idx)
+        log.info("Surveillance stopped. Processed %d AI inferences (%d video frames rendered).", ai_processor.total_inferences, frame_idx)

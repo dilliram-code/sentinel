@@ -67,28 +67,20 @@ YOLO_CONF_THRESHOLD = 0.40
 
 YOLO_PERSON_CLASS = 0
 
-LIVE_FRAME_FPS = 12
-LIVE_JPEG_QUALITY = 85
-# Smaller image = faster inference
+LIVE_FRAME_FPS = 30
+LIVE_JPEG_QUALITY = 80
+# YOLO image inference size
 YOLO_IMG_SIZE = 640
 
-# Process YOLO every Nth frame
-#
-# 1 = every frame
-# 2 = every second frame
-# 3 = every third frame
-#
-FRAME_PROCESS_EVERY_N = 2
+# Process YOLO and InsightFace in async background worker
+FRAME_PROCESS_EVERY_N = 1
 
 
 # ============================================================================
 # INSIGHTFACE
 # ============================================================================
 
-# buffalo_l = better accuracy but slower
-#
 # buffalo_s = considerably faster and recommended for real-time
-#
 FACE_MODEL_NAME = "buffalo_s"
 
 FACE_DET_SIZE = (

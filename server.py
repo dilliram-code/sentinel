@@ -70,7 +70,7 @@ class PipelineManager:
         self.is_running = False
         self.source = settings.DEFAULT_SOURCE
         self.location = settings.DEFAULT_CAMERA_LOCATION
-        self.active_websockets: List[WebSocket] = []
+        self.client_queues: List[asyncio.Queue] = []
         self.lock = threading.Lock()
         self.latest_jpeg: Optional[bytes] = None
         self.latest_telemetry = {
@@ -81,43 +81,53 @@ class PipelineManager:
         }
         self.loop: Optional[asyncio.AbstractEventLoop] = None
 
+    def register_client_queue(self, queue: asyncio.Queue):
+        with self.lock:
+            if queue not in self.client_queues:
+                self.client_queues.append(queue)
+
+    def unregister_client_queue(self, queue: asyncio.Queue):
+        with self.lock:
+            if queue in self.client_queues:
+                self.client_queues.remove(queue)
+
     def frame_callback(self, frame, summary, events, fps):
-        """Called by surveillance_pipeline on every processed frame."""
-        # Encode frame to JPEG
-        ok, encoded = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+        """Called by surveillance_pipeline on every rendered video frame."""
+        # High quality & low latency JPEG encode
+        ok, encoded = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, int(getattr(settings, "LIVE_JPEG_QUALITY", 80))])
         if not ok:
             return
 
         jpeg_bytes = encoded.tobytes()
+        telemetry = {
+            "fps": round(fps, 1),
+            "summary": summary,
+            "events": events,
+            "timestamp": time.time()
+        }
+
         with self.lock:
             self.latest_jpeg = jpeg_bytes
-            self.latest_telemetry = {
-                "fps": round(fps, 1),
-                "summary": summary,
-                "events": events,
-                "timestamp": time.time()
-            }
+            self.latest_telemetry = telemetry
+            queues = list(self.client_queues)
 
-        # Broadcast to connected WebSocket clients
-        if self.active_websockets and self.loop:
-            for ws in list(self.active_websockets):
+        # Distribute newest frame to all active async queues with drop-oldest guarantee
+        if queues and self.loop and not self.loop.is_closed():
+            for q in queues:
+                def _push(queue=q, data=(jpeg_bytes, telemetry)):
+                    if queue.full():
+                        try:
+                            queue.get_nowait()
+                        except Exception:
+                            pass
+                    try:
+                        queue.put_nowait(data)
+                    except Exception:
+                        pass
                 try:
-                    asyncio.run_coroutine_threadsafe(
-                        self._send_frame(ws, jpeg_bytes, self.latest_telemetry),
-                        self.loop
-                    )
+                    self.loop.call_soon_threadsafe(_push)
                 except Exception:
                     pass
-
-    async def _send_frame(self, ws: WebSocket, jpeg_bytes: bytes, telemetry: dict):
-        try:
-            # Send binary frame directly for maximum throughput and zero base64 overhead
-            await ws.send_bytes(jpeg_bytes)
-            # If there are notable events or stats to sync
-            if telemetry.get("events"):
-                await ws.send_json({"type": "events", "data": telemetry["events"]})
-        except Exception:
-            pass
 
     def start(self, source=None, location=None):
         with self.lock:
@@ -188,7 +198,6 @@ pipeline_mgr = PipelineManager()
 @app.on_event("startup")
 async def on_startup():
     pipeline_mgr.loop = asyncio.get_running_loop()
-    # Optionally auto-start pipeline on launch
     log.info("Sentinel Web Server ready on port 8000. Access at http://localhost:8000")
 
 
@@ -204,34 +213,83 @@ async def on_shutdown():
 @app.websocket("/ws/live")
 async def websocket_live_stream(websocket: WebSocket):
     """
-    High-performance WebSocket connection delivering binary JPEG frames
-    and real-time detection telemetry with low latency.
+    Ultra-low latency WebSocket stream delivering binary JPEG frames
+    and real-time detection telemetry at smooth 30+ FPS.
     """
     await websocket.accept()
-    pipeline_mgr.active_websockets.append(websocket)
-    log.info("New live stream WebSocket client connected. Total clients: %d", len(pipeline_mgr.active_websockets))
+    client_queue = asyncio.Queue(maxsize=1)
+    pipeline_mgr.register_client_queue(client_queue)
+    log.info("Live stream WebSocket client connected. Active streams: %d", len(pipeline_mgr.client_queues))
 
+    # Send initial status
     try:
-        # Initial status handshake
         await websocket.send_json({
             "type": "status",
             "data": pipeline_mgr.get_status()
         })
+    except Exception:
+        pass
 
+    async def _send_frames():
         while True:
-            # Handle incoming ping/config messages from client
+            jpeg_bytes, telemetry = await client_queue.get()
+            await websocket.send_bytes(jpeg_bytes)
+            if telemetry.get("events"):
+                await websocket.send_json({"type": "events", "data": telemetry["events"]})
+
+    async def _receive_client():
+        while True:
             msg = await websocket.receive_text()
             if msg == "ping":
                 await websocket.send_json({"type": "pong", "time": time.time(), "status": pipeline_mgr.get_status()})
 
+    sender_task = asyncio.create_task(_send_frames())
+    receiver_task = asyncio.create_task(_receive_client())
+
+    try:
+        done, pending = await asyncio.wait(
+            [sender_task, receiver_task],
+            return_when=asyncio.FIRST_COMPLETED
+        )
+        for task in pending:
+            task.cancel()
     except WebSocketDisconnect:
         pass
     except Exception as exc:
-        log.debug("WebSocket exception: %s", exc)
+        log.debug("WebSocket live stream exception: %s", exc)
     finally:
-        if websocket in pipeline_mgr.active_websockets:
-            pipeline_mgr.active_websockets.remove(websocket)
-        log.info("Live stream WebSocket client disconnected. Remaining: %d", len(pipeline_mgr.active_websockets))
+        sender_task.cancel()
+        receiver_task.cancel()
+        pipeline_mgr.unregister_client_queue(client_queue)
+        log.info("Live stream WebSocket client disconnected. Remaining: %d", len(pipeline_mgr.client_queues))
+
+
+# ---------------------------------------------------------------------------
+# Native MJPEG Video Stream
+# ---------------------------------------------------------------------------
+
+@app.get("/api/live/mjpeg")
+async def api_mjpeg_stream():
+    """Direct multipart MJPEG video stream for HTML5 <img src='/api/live/mjpeg'>."""
+    async def mjpeg_generator():
+        client_queue = asyncio.Queue(maxsize=1)
+        pipeline_mgr.register_client_queue(client_queue)
+        try:
+            while True:
+                jpeg_bytes, _ = await client_queue.get()
+                yield (
+                    b"--frame\r\n"
+                    b"Content-Type: image/jpeg\r\n\r\n" + jpeg_bytes + b"\r\n"
+                )
+        except asyncio.CancelledError:
+            pass
+        finally:
+            pipeline_mgr.unregister_client_queue(client_queue)
+
+    return StreamingResponse(
+        mjpeg_generator(),
+        media_type="multipart/x-mixed-replace; boundary=frame"
+    )
 
 
 # ---------------------------------------------------------------------------

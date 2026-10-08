@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnQuickConfig: document.getElementById('btnQuickConfig'),
 
         // Live Feed Elements
+        liveVideoCanvas: document.getElementById('liveVideoCanvas'),
         liveVideoFeed: document.getElementById('liveVideoFeed'),
         streamOverlay: document.getElementById('streamOverlay'),
         streamStatusText: document.getElementById('streamStatusText'),
@@ -158,6 +159,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // -----------------------------------------------------------------------
     // WebSocket High-Performance Video Receiver
     // -----------------------------------------------------------------------
+    let canvasCtx = null;
+    if (dom.liveVideoCanvas) {
+        canvasCtx = dom.liveVideoCanvas.getContext('2d', { alpha: false });
+    }
+
+    function renderImgFallback(blob) {
+        const newUrl = URL.createObjectURL(blob);
+        dom.liveVideoFeed.onload = () => {
+            if (state.lastBlobUrl && state.lastBlobUrl !== newUrl) {
+                URL.revokeObjectURL(state.lastBlobUrl);
+            }
+            state.lastBlobUrl = newUrl;
+        };
+        dom.liveVideoFeed.src = newUrl;
+        dom.streamOverlay.classList.add('hidden');
+    }
+
     function connectWebSocket() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws/live`;
@@ -174,17 +192,27 @@ document.addEventListener('DOMContentLoaded', () => {
             // Binary Message: Video Frame
             if (event.data instanceof ArrayBuffer) {
                 const blob = new Blob([event.data], { type: 'image/jpeg' });
-                const newUrl = URL.createObjectURL(blob);
 
-                // Set new image source
-                dom.liveVideoFeed.src = newUrl;
-                dom.streamOverlay.classList.add('hidden');
-
-                // Revoke old blob URL to prevent memory leak
-                if (state.lastBlobUrl) {
-                    URL.revokeObjectURL(state.lastBlobUrl);
+                // Fast GPU Canvas rendering via createImageBitmap (Zero GC churn, 60fps capable)
+                if (window.createImageBitmap && dom.liveVideoCanvas && canvasCtx) {
+                    createImageBitmap(blob).then((bitmap) => {
+                        if (dom.liveVideoCanvas.width !== bitmap.width || dom.liveVideoCanvas.height !== bitmap.height) {
+                            dom.liveVideoCanvas.width = bitmap.width;
+                            dom.liveVideoCanvas.height = bitmap.height;
+                        }
+                        if (dom.liveVideoCanvas.style.display !== 'block') {
+                            dom.liveVideoCanvas.style.display = 'block';
+                            dom.liveVideoFeed.style.display = 'none';
+                        }
+                        canvasCtx.drawImage(bitmap, 0, 0);
+                        bitmap.close();
+                        dom.streamOverlay.classList.add('hidden');
+                    }).catch(() => {
+                        renderImgFallback(blob);
+                    });
+                } else {
+                    renderImgFallback(blob);
                 }
-                state.lastBlobUrl = newUrl;
             } 
             // JSON Message: Telemetry or Events
             else {
@@ -715,7 +743,11 @@ document.addEventListener('DOMContentLoaded', () => {
     dom.btnSnapshot.addEventListener('click', () => {
         const link = document.createElement('a');
         link.download = `surveillance_snapshot_${Date.now()}.jpg`;
-        link.href = dom.liveVideoFeed.src;
+        if (dom.liveVideoCanvas && dom.liveVideoCanvas.style.display !== 'none') {
+            link.href = dom.liveVideoCanvas.toDataURL('image/jpeg', 0.95);
+        } else {
+            link.href = dom.liveVideoFeed.src;
+        }
         link.click();
         showToast('Snapshot Saved', 'Current camera frame downloaded.', 'info');
     });
