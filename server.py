@@ -279,10 +279,10 @@ def api_pipeline_stop():
 
 @app.get("/api/visits")
 def api_get_visits(
-    limit: int = Query(100, ge=1, le=2000),
-    offset: int = Query(0, ge=0),
-    search: Optional[str] = Query(None),
-    role: Optional[str] = Query(None)
+    limit: int = 100,
+    offset: int = 0,
+    search: Optional[str] = None,
+    role: Optional[str] = None
 ):
     """Fetch paginated visit logs."""
     rows = db_manager.fetch_visits(limit=limit, offset=offset, name_filter=search, role_filter=role)
@@ -302,7 +302,7 @@ def api_get_visits(
 
 
 @app.get("/api/visits/export")
-def api_export_visits(search: Optional[str] = Query(None), role: Optional[str] = Query(None)):
+def api_export_visits(search: Optional[str] = None, role: Optional[str] = None):
     """Export visit records as a downloadable CSV."""
     rows = db_manager.fetch_visits(limit=10000, offset=0, name_filter=search, role_filter=role)
     output = io.StringIO()
@@ -322,9 +322,9 @@ def api_export_visits(search: Optional[str] = Query(None), role: Optional[str] =
 
 @app.get("/api/unknowns")
 def api_get_unknowns(
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    only_unverified: bool = Query(False)
+    limit: int = 100,
+    offset: int = 0,
+    only_unverified: bool = False
 ):
     """Fetch unknown person records."""
     rows = db_manager.fetch_unknowns(limit=limit, offset=offset, only_unverified=only_unverified)
