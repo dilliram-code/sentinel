@@ -12,51 +12,23 @@ import torch
 # BASE PATHS
 # ============================================================================
 
-BASE_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.abspath(__file__)
-    )
-)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DATA_DIR = os.path.join(
-    BASE_DIR,
-    "data"
-)
+DATA_DIR = os.path.join(BASE_DIR,"data")
 
-STAKEHOLDER_IMG_DIR = os.path.join(
-    DATA_DIR,
-    "stakeholders"
-)
+STAKEHOLDER_IMG_DIR = os.path.join(DATA_DIR,"stakeholders")
 
-UNKNOWN_IMG_DIR = os.path.join(
-    DATA_DIR,
-    "unknown_faces"
-)
+UNKNOWN_IMG_DIR = os.path.join(DATA_DIR,"unknown_faces")
 
-LIVE_FRAME_DIR = os.path.join(
-    DATA_DIR,
-    "live"
-)
+LIVE_FRAME_DIR = os.path.join(DATA_DIR,"live")
 
-MODELS_DIR = os.path.join(
-    BASE_DIR,
-    "models"
-)
+MODELS_DIR = os.path.join(BASE_DIR,"models")
 
-DB_PATH = os.path.join(
-    DATA_DIR,
-    "campus_surveillance.db"
-)
+DB_PATH = os.path.join(DATA_DIR,"campus_surveillance.db")
 
-LOG_FILE = os.path.join(
-    DATA_DIR,
-    "system.log"
-)
+LOG_FILE = os.path.join(DATA_DIR,"system.log")
 
-LATEST_FRAME_PATH = os.path.join(
-    LIVE_FRAME_DIR,
-    "latest.jpg"
-)
+LATEST_FRAME_PATH = os.path.join(LIVE_FRAME_DIR,"latest.jpg")
 
 
 # ============================================================================
@@ -91,7 +63,7 @@ print(
 
 YOLO_MODEL_PATH = "yolov8n.pt"
 
-YOLO_CONF_THRESHOLD = 0.45
+YOLO_CONF_THRESHOLD = 0.40
 
 YOLO_PERSON_CLASS = 0
 

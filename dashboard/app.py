@@ -26,6 +26,8 @@ button — there is no background auto-refresh.
 import os
 import sys
 import time
+import subprocess
+import streamlit.components.v1 as components
 from datetime import datetime
 
 import pandas as pd
@@ -45,6 +47,36 @@ PROJECT_ROOT = os.path.dirname(
 
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
+
+
+# ============================================================================
+# RECORDED VIDEO SUPPORT
+#
+# The AI pipeline (main.py run --source ...) already accepts a webcam
+# index, an RTSP/HTTP URL, or a local video file path. These paths just
+# give the dashboard a place to store/browse recorded videos and a way
+# to launch/stop that same pipeline as a background process, without
+# changing how the pipeline itself runs.
+# ============================================================================
+
+MAIN_SCRIPT_PATH = os.path.join(
+    PROJECT_ROOT, "main.py"
+)
+
+VIDEO_UPLOAD_DIR = os.path.join(
+    PROJECT_ROOT, "data", "videos"
+)
+
+PIPELINE_LOG_PATH = os.path.join(
+    PROJECT_ROOT, "data", "logs", "dashboard_pipeline.log"
+)
+
+VIDEO_EXTENSIONS = (
+    ".mp4", ".mov", ".avi", ".mkv", ".m4v"
+)
+
+os.makedirs(VIDEO_UPLOAD_DIR, exist_ok=True)
+os.makedirs(os.path.dirname(PIPELINE_LOG_PATH), exist_ok=True)
 
 
 # ============================================================================
@@ -233,6 +265,50 @@ section[data-testid="stSidebar"] {
 
 section[data-testid="stSidebar"] * {
     color: white;
+}
+
+
+/* ------------------------------------------------------------
+   ALWAYS KEEP THE SIDEBAR OPEN
+
+   Streamlit's own "collapse sidebar" button lives partly inside
+   the header we hide above, and its internal name has changed
+   across versions (collapsedControl -> stSidebarCollapseButton
+   -> ...), so relying on it to reopen a collapsed sidebar is
+   fragile. Instead, this simply overrides whatever transform/
+   width/margin Streamlit applies for the "collapsed" state, no
+   matter what it's called internally — the sidebar just never
+   collapses in the first place.
+   ------------------------------------------------------------ */
+
+section[data-testid="stSidebar"],
+section[data-testid="stSidebar"][aria-expanded="false"],
+section[data-testid="stSidebar"][aria-expanded="true"] {
+    display: block !important;
+    transform: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    left: 0 !important;
+    margin-left: 0 !important;
+    min-width: 21rem !important;
+    width: 21rem !important;
+    max-width: 21rem !important;
+    overflow: visible !important;
+    pointer-events: auto !important;
+}
+
+section[data-testid="stSidebar"] > div,
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"],
+section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
+    display: block !important;
+    transform: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    left: 0 !important;
+    margin-left: 0 !important;
+    width: 100% !important;
 }
 
 
@@ -714,6 +790,93 @@ button[data-baseweb="tab"][aria-selected="true"] p {
 
 
 # ============================================================================
+# FORCE SIDEBAR OPEN (JavaScript)
+#
+# The CSS override above targets the sidebar by its data-testid, but
+# Streamlit's own CSS-in-JS (Emotion) rules can chain enough classes
+# together to out-specificity a plain !important CSS rule. Inline
+# styles set directly via JS always win over ANY external stylesheet
+# rule, regardless of its specificity — so this reaches into the
+# parent page (this runs inside components.html's iframe) and pins
+# the sidebar open directly on the element itself. It re-applies on
+# an interval because Streamlit re-renders the sidebar on every
+# rerun, which would otherwise wipe these inline styles out again.
+# ============================================================================
+
+components.html(
+    """
+    <script>
+    (function () {
+
+        function forceSidebarOpen() {
+
+            var doc = window.parent.document;
+
+            var sidebar = doc.querySelector(
+                'section[data-testid="stSidebar"]'
+            );
+
+            if (!sidebar) {
+                return;
+            }
+
+            sidebar.setAttribute("aria-expanded", "true");
+
+            var sidebarStyles = {
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "transform": "none",
+                "position": "relative",
+                "left": "0px",
+                "margin-left": "0px",
+                "width": "300px",
+                "min-width": "300px",
+                "max-width": "300px",
+                "overflow": "visible",
+                "pointer-events": "auto"
+            };
+
+            for (var prop in sidebarStyles) {
+                sidebar.style.setProperty(
+                    prop, sidebarStyles[prop], "important"
+                );
+            }
+
+            var content = sidebar.querySelector(
+                '[data-testid="stSidebarContent"]'
+            );
+
+            if (content) {
+
+                var contentStyles = {
+                    "display": "block",
+                    "visibility": "visible",
+                    "opacity": "1",
+                    "transform": "none",
+                    "width": "100%"
+                };
+
+                for (var cprop in contentStyles) {
+                    content.style.setProperty(
+                        cprop, contentStyles[cprop], "important"
+                    );
+                }
+            }
+        }
+
+        forceSidebarOpen();
+
+        setInterval(forceSidebarOpen, 300);
+
+    })();
+    </script>
+    """,
+    height=0,
+)
+
+
+# ============================================================================
 # DATABASE
 # ============================================================================
 
@@ -825,6 +988,292 @@ def read_live_frame():
     ):
 
         return None
+
+
+# ============================================================================
+# RECORDED VIDEO FILES
+# ============================================================================
+
+def list_uploaded_videos():
+
+    if not os.path.isdir(VIDEO_UPLOAD_DIR):
+
+        return []
+
+    files = [
+
+        name for name in os.listdir(VIDEO_UPLOAD_DIR)
+
+        if name.lower().endswith(VIDEO_EXTENSIONS)
+    ]
+
+    return sorted(files)
+
+
+# ============================================================================
+# PIPELINE PROCESS CONTROL
+#
+# The AI pipeline runs as its own process (per the module docstring
+# above) — the dashboard never imports YOLO/InsightFace directly.
+# These helpers just start/stop that same "python main.py run ..."
+# process from a button instead of a second terminal.
+# ============================================================================
+
+def is_pipeline_running():
+
+    process = st.session_state.get(
+        "pipeline_process"
+    )
+
+    if process is None:
+
+        return False
+
+    return process.poll() is None
+
+
+def start_pipeline(source, location):
+
+    if is_pipeline_running():
+
+        return
+
+    command = [
+
+        sys.executable,
+
+        MAIN_SCRIPT_PATH,
+
+        "run",
+
+        "--source", str(source),
+
+        "--no-display",
+    ]
+
+    if location:
+
+        command += ["--location", location]
+
+    log_file = open(PIPELINE_LOG_PATH, "ab")
+
+    process = subprocess.Popen(
+
+        command,
+
+        cwd=PROJECT_ROOT,
+
+        stdout=log_file,
+
+        stderr=subprocess.STDOUT,
+    )
+
+    st.session_state["pipeline_process"] = process
+
+    st.session_state["pipeline_source"] = source
+
+
+def stop_pipeline():
+
+    process = st.session_state.get(
+        "pipeline_process"
+    )
+
+    if process is None:
+
+        return
+
+    if process.poll() is None:
+
+        process.terminate()
+
+        try:
+
+            process.wait(timeout=5)
+
+        except subprocess.TimeoutExpired:
+
+            process.kill()
+
+    st.session_state["pipeline_process"] = None
+
+
+# ============================================================================
+# FEED SOURCE CONTROL (sidebar)
+# ============================================================================
+
+def render_source_control():
+
+    """
+    Lets the user pick the pipeline's input:
+
+        - Live camera (webcam / RTSP), i.e. settings.DEFAULT_SOURCE
+        - A recorded video file, uploaded here or dropped into
+          data/videos/
+
+    ...and start/stop "python main.py run --source ..." as a
+    background process. This does not change how the pipeline
+    itself works — it's the same command you'd run in a second
+    terminal, just launched from a button.
+    """
+
+    st.markdown(
+        "**Feed source**"
+    )
+
+    mode = st.radio(
+        "Feed source",
+        [
+            "Live camera (webcam / RTSP)",
+            "Recorded video file",
+        ],
+        index=0,
+        key="feed_mode",
+        label_visibility="collapsed",
+    )
+
+    location = st.text_input(
+        "Location label",
+        value=settings.DEFAULT_CAMERA_LOCATION,
+        key="feed_location",
+    )
+
+    # --------------------------------------------------------
+    # LIVE CAMERA
+    # --------------------------------------------------------
+
+    if mode == "Live camera (webcam / RTSP)":
+
+        source_value = settings.DEFAULT_SOURCE
+
+        st.caption(
+            f"Source: `{source_value}`"
+        )
+
+    # --------------------------------------------------------
+    # RECORDED VIDEO FILE
+    # --------------------------------------------------------
+
+    else:
+
+        uploaded = st.file_uploader(
+            "Upload a video",
+            type=[
+                ext.lstrip(".")
+                for ext in VIDEO_EXTENSIONS
+            ],
+            key="video_upload",
+        )
+
+        if uploaded is not None:
+
+            save_path = os.path.join(
+                VIDEO_UPLOAD_DIR, uploaded.name
+            )
+
+            with open(save_path, "wb") as file:
+
+                file.write(uploaded.getbuffer())
+
+            st.success(
+                f"Saved to data/videos/{uploaded.name}"
+            )
+
+        videos = list_uploaded_videos()
+
+        if not videos:
+
+            st.info(
+                "No videos yet. Upload one above, or drop "
+                "a file into data/videos/ and refresh."
+            )
+
+            source_value = None
+
+        else:
+
+            chosen = st.selectbox(
+                "Video file",
+                videos,
+                key="chosen_video",
+            )
+
+            source_value = os.path.join(
+                VIDEO_UPLOAD_DIR, chosen
+            )
+
+            st.caption(
+                f"Source: `{source_value}`"
+            )
+
+    # --------------------------------------------------------
+    # START / STOP
+    # --------------------------------------------------------
+
+    running = is_pipeline_running()
+
+    col_start, col_stop = st.columns(2)
+
+    with col_start:
+
+        if st.button(
+            "▶ Start",
+            use_container_width=True,
+            disabled=(running or source_value is None),
+        ):
+
+            start_pipeline(source_value, location)
+
+            st.rerun()
+
+    with col_stop:
+
+        if st.button(
+            "⏹ Stop",
+            use_container_width=True,
+            disabled=not running,
+        ):
+
+            stop_pipeline()
+
+            st.rerun()
+
+    if running:
+
+        st.markdown(
+            '<span class="status-online">'
+            '● Pipeline running'
+            '</span>',
+            unsafe_allow_html=True,
+        )
+
+        st.caption(
+            f"Source: `{st.session_state.get('pipeline_source')}`"
+        )
+
+    else:
+
+        st.markdown(
+            '<span class="status-offline">'
+            '● Pipeline stopped'
+            '</span>',
+            unsafe_allow_html=True,
+        )
+
+    with st.expander("Manual command (2nd terminal)"):
+
+        if source_value is None:
+
+            st.caption(
+                "Pick a video above to see the command."
+            )
+
+        else:
+
+            st.code(
+                f'python main.py run --source "{source_value}" '
+                f'--location "{location}" --no-display'
+            )
 
 
 # ============================================================================
@@ -1017,6 +1466,12 @@ with st.sidebar:
         "---"
     )
 
+    render_source_control()
+
+    st.markdown(
+        "---"
+    )
+
     st.markdown(
         "### System information"
     )
@@ -1042,8 +1497,11 @@ with st.sidebar:
     )
 
     st.info(
-        "The camera/AI pipeline should run separately. "
-        "This dashboard displays its latest annotated frame."
+        "The camera/AI pipeline normally runs separately "
+        "(python main.py run). You can also start/stop it "
+        "above for a chosen video, or run it manually as "
+        "before — either way, this dashboard just displays "
+        "its latest annotated frame."
     )
 
 
